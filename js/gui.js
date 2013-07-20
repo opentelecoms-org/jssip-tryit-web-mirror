@@ -86,6 +86,7 @@ window.GUI = {
       //Attach the streams to the views if it exists.
       if ( call.getLocalStreams().length > 0) {
         selfView.src = window.URL.createObjectURL(call.getLocalStreams()[0]);
+        selfView.volume = 0;
       }
 
       if ( call.getRemoteStreams().length > 0) {
@@ -454,7 +455,7 @@ window.GUI = {
 
         button_dial.click(function() {
           session.call.answer({
-            mediaConstraints: { audio: true, video:$('#video').is(':checked') }
+            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
           });
         });
 
@@ -568,11 +569,11 @@ window.GUI = {
       selfView = document.getElementById('selfView');
       remoteView = document.getElementById('remoteView');
       views = {selfView: selfView, remoteView: remoteView};
-      mediaTypes = { audio: true, video:$('#video').is(':checked')};
+      mediaTypes = { audio: true, video:$('#enableVideo').is(':checked')};
 
       try {
         MyPhone.call(target, {
-          mediaConstraints: { audio: true, video:$('#video').is(':checked') },
+          mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
           RTCConstraints: {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]}
         });
       } catch(e){

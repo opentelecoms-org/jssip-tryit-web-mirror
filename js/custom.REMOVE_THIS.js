@@ -40,13 +40,13 @@
 // CustomJsSIP = "http://my-server/my-jssip.js"
 
 
-// Configure in CustomConfiguration your custom settings for JsSIP so the web
+// Configure in CustomJsSIPSettings your custom settings for JsSIP so the web
 // will inmediately login without filling the HTML form.
 //
 // Parameters with null value means "use parameter default value". Check the
 // documentation at http://jssip.net/documentation/devel/api/ua_configuration_parameters/
 //
-// CustomConfiguration = {
+// CustomJsSIPSettings = {
 //   uri: null,
 //   password: null,
 //   ws_servers: null,
@@ -63,4 +63,11 @@
 //   connection_recovery_max_interval: null,
 //   hack_via_tcp: null,
 //   hack_ip_in_contact: null
+// };
+
+
+// Configure in Settings some parameters.
+//
+// Settings = {
+//   videoDisabledByDefault: true
 // };

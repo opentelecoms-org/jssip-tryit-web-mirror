@@ -1,8 +1,5 @@
 $(document).ready(function(){
 
-  // Just for testing.
-  //navigator.registerProtocolHandler('sip', 'http://tryit.jssip.net#call-to=%s', 'Tryit JsSIP');
-
   // Global variables.
   PageTitle = "JsSIP Tryit";
   document.title = PageTitle;
@@ -122,13 +119,13 @@ $(document).ready(function(){
 
   // If there is a custom js/custom.js file then load it and directly use its JsSIP configuration.
   //$.getScript("js/custom.js", function(data, textStatus, jqxhr) {
-  if (window.CustomConfiguration) {
-    console.info("*** CustomConfiguration found in js/custom.js, bypassing login form...");
+  if (window.CustomJsSIPSettings) {
+    console.info("*** CustomJsSIPSettings found in js/custom.js, bypassing login form...");
 
-    login_display_name.val(CustomConfiguration.display_name);
-    login_sip_uri.val(CustomConfiguration.uri);
-    login_sip_password.val(CustomConfiguration.password);
-    login_ws_servers.val(CustomConfiguration.ws_servers);
+    login_display_name.val(CustomJsSIPSettings.display_name);
+    login_sip_uri.val(CustomJsSIPSettings.uri);
+    login_sip_password.val(CustomJsSIPSettings.password);
+    login_ws_servers.val(CustomJsSIPSettings.ws_servers);
 
     login_form.submit();
   }
@@ -235,9 +232,9 @@ $(document).ready(function(){
   function phoneInit() {
     var configuration;
 
-    // If js/custom.js was found then use its CustomConfiguration object.
-    if (window.CustomConfiguration) {
-      configuration = CustomConfiguration;
+    // If js/custom.js was found then use its CustomJsSIPSettings object.
+    if (window.CustomJsSIPSettings) {
+      configuration = CustomJsSIPSettings;
     }
 
     // Otherwise load data from the forms.
@@ -350,7 +347,7 @@ $(document).ready(function(){
 
       if (! ws_was_connected) {
         alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
-        if (! window.CustomConfiguration) { window.location.reload(false); }
+        if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
 
@@ -457,7 +454,7 @@ $(document).ready(function(){
       else {
         alert("SIP registration error:\n" + e.data.response.status_code.toString() + " " + e.data.response.reason_phrase)
       }
-      if (! window.CustomConfiguration) { window.location.reload(false); }
+      if (! window.CustomJsSIPSettings) { window.location.reload(false); }
     });
 
     // Start
@@ -471,6 +468,13 @@ $(document).ready(function(){
     $("#login-box").fadeOut(1000, function() {
       $(this).remove();
     });
+    
+    // Apply custom settings.
+    if (window.Settings) {
+      if (window.Settings.videoDisabledByDefault) {
+        $('#enableVideo').prop('checked', false);
+      }
+    }
 
 
     // Invitation text and balloon for tryit.jssip.net accounts.
