@@ -16,7 +16,7 @@
  * In your *nix WWW server retrieve the full code and files of Tryit JsSIP
  * by running:
  *
- *   wget -rN http://tryit.jssip.net
+ *   wget -rN http://tryit.jssip.net ; wget -rN http://tryit.jssip.net/sounds
  *
  * This will generate a directory "tryit.jssip.net" in the path where you run
  * the command. The option -N means that just modified files in the server
