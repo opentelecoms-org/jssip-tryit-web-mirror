@@ -529,7 +529,7 @@ $(document).ready(function(){
     // Piwik stuff
 
     try {
-      var piwikTracker = Piwik.getTracker("http://www.aliax.net/piwik/piwik.php", 6);
+      var piwikTracker = Piwik.getTracker("http://private.versatica.com/piwik/piwik.php", 6);
       var piwikData = sip_uri + " | " + ws_servers;
       piwikTracker.setCustomVariable(3, "data", piwikData, "page");
       piwikTracker.trackPageView();
