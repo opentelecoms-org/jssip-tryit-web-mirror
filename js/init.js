@@ -3,6 +3,7 @@ $(document).ready(function(){
   // Global variables.
   PageTitle = "JsSIP Tryit";
   document.title = PageTitle;
+  _Session = null;  // The last RTCSession instance.
 
   register_checkbox = $("#phone > .status #register");
   phone_dialed_number_screen = $("#phone > .controls  input.destination");
@@ -413,6 +414,8 @@ $(document).ready(function(){
 
     // Call/Message reception callbacks
     MyPhone.on('newRTCSession', function(e) {
+      // Set a global '_Session' variable with the session for testing.
+      _Session = e.data.session;
       GUI.new_session(e)
     });
 
