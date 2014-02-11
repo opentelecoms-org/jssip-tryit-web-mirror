@@ -574,8 +574,7 @@ window.GUI = {
       try {
         MyPhone.call(target, {
           mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          //RTCConstraints: {"mandatory": [{'DtlsSrtpKeyAgreement': 'false'}]},
-          stun_servers: []
+          RTCConstraints: {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]}
         });
       } catch(e){
         throw(e);
