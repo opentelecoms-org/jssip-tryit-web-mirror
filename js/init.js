@@ -283,10 +283,10 @@ $(document).ready(function(){
       var turn_servers = $("#advanced-settings-form input[name$='turn_servers']").val();
       // To JSON (in case of a simple string we must enclose between ").
       if (turn_servers) {
-        if (turn_servers.charAt(0) != "[")
+        if (turn_servers.charAt(0) != "[" && turn_servers.charAt(0) !="{")
           turn_servers = '"' + turn_servers + '"'
         turn_servers = window.JSON.parse(turn_servers);
-      }
+      } 
       var use_preloaded_route = $("#advanced-settings-form input[name$='use_preloaded_route']").is(':checked');
       var connection_recovery_min_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_min_interval']").val());
       var connection_recovery_max_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_max_interval']").val());
@@ -347,8 +347,7 @@ $(document).ready(function(){
       });
 
       if (! ws_was_connected) {
-	//alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
-	console.error("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
+        alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
         if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
