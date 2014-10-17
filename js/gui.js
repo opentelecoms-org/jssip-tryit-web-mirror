@@ -12,23 +12,15 @@ window.GUI = {
 
   phoneChatButtonPressed : function() {
     var user, session,
-      uri = phone_dialed_number_screen.val();
+      target = phone_dialed_number_screen.val();
 
-    if (uri) {
-      uri = JsSIP.Utils.normalizeURI(uri, MyPhone.configuration.hostport_params);
-      if (uri) {
-        user = uri.user;
-      } else {
-        alert('Invalid target');
-        return;
-      }
-
+    if (target) {
       phone_dialed_number_screen.val("");
-      session = GUI.getSession(uri);
+      session = GUI.getSession(target);
 
       // If this is a new session create it without call.
       if (!session) {
-        session = GUI.createSession(user, uri);
+        session = GUI.createSession(user, target);
         GUI.setCallSessionStatus(session, "inactive");
       }
 
@@ -85,12 +77,16 @@ window.GUI = {
     call.on('started',function(e){
       //Attach the streams to the views if it exists.
       if ( call.getLocalStreams().length > 0) {
-        selfView.src = window.URL.createObjectURL(call.getLocalStreams()[0]);
+        // selfView.src = window.URL.createObjattachMediaStreamectURL(call.getLocalStreams()[0]);
+        // Use the helper form plugin-adapter.js:
+        selfView = attachMediaStream(selfView, call.getLocalStreams()[0]);
         selfView.volume = 0;
       }
 
       if ( call.getRemoteStreams().length > 0) {
-        remoteView.src = window.URL.createObjectURL(call.getRemoteStreams()[0]);
+        //remoteView.src = window.URL.createObjectURL(call.getRemoteStreams()[0]);
+        // Use the helper form plugin-adapter.js:
+        remoteView = attachMediaStream(remoteView, call.getRemoteStreams()[0]);
       }
 
       GUI.setCallSessionStatus(session, 'answered');
@@ -388,11 +384,11 @@ window.GUI = {
         status_text.text(description || "trying...");
 
         // unhide HTML Video Elements
-        $('#remoteView').attr('hidden', false);
-        $('#selfView').attr('hidden', false);
+        //$('#remoteView').attr('hidden', false);
+        //$('#selfView').attr('hidden', false);
 
         // Set background image
-        $('#remoteView').attr('poster', "images/logo.png");
+        //$('#remoteView').attr('poster', "images/logo.png");
 
         // Hide DTMF box.
         dtmf_box.hide();
@@ -455,16 +451,17 @@ window.GUI = {
 
         button_dial.click(function() {
           session.call.answer({
-            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
+            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
+            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
           });
         });
 
         // unhide HTML Video Elements
-        $('#remoteView').attr('hidden', false);
-        $('#selfView').attr('hidden', false);
+        //$('#remoteView').attr('hidden', false);
+        //$('#selfView').attr('hidden', false);
 
         // Set background image
-        $('#remoteView').attr('poster', "images/logo.png");
+        //$('#remoteView').attr('poster', "images/logo.png");
 
         // Hide DTMF box.
         dtmf_box.hide();
@@ -500,8 +497,8 @@ window.GUI = {
     }
 
     // hide HTML Video Elements
-    $('#remoteView').attr('hidden', true);
-    $('#selfView').attr('hidden', true);
+    //$('#remoteView').attr('hidden', true);
+    //$('#selfView').attr('hidden', true);
   },
 
 
@@ -565,16 +562,15 @@ window.GUI = {
 
   jssipCall : function(target) {
       var views, selfView, remoteView, mediaTypes;
-
+      
       selfView = document.getElementById('selfView');
       remoteView = document.getElementById('remoteView');
       views = {selfView: selfView, remoteView: remoteView};
-      mediaTypes = { audio: true, video:$('#enableVideo').is(':checked')};
 
       try {
         MyPhone.call(target, {
           mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          RTCConstraints: {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]}
+          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
         });
       } catch(e){
         throw(e);

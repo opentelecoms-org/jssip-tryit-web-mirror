@@ -13,7 +13,6 @@ $(document).ready(function(){
   soundPlayer = document.createElement("audio");
   soundPlayer.volume = 1;
 
-
   // Local variables.
 
   var display_name = null;
@@ -116,7 +115,6 @@ $(document).ready(function(){
     phone_chat_button.click();
     return false;
   });
-
 
   // If there is a custom js/custom.js file then load it and directly use its JsSIP configuration.
   //$.getScript("js/custom.js", function(data, textStatus, jqxhr) {
@@ -286,7 +284,7 @@ $(document).ready(function(){
         if (turn_servers.charAt(0) != "[" && turn_servers.charAt(0) !="{")
           turn_servers = '"' + turn_servers + '"'
         turn_servers = window.JSON.parse(turn_servers);
-      } 
+      }
       var use_preloaded_route = $("#advanced-settings-form input[name$='use_preloaded_route']").is(':checked');
       var connection_recovery_min_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_min_interval']").val());
       var connection_recovery_max_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_max_interval']").val());
@@ -347,7 +345,8 @@ $(document).ready(function(){
       });
 
       if (! ws_was_connected) {
-        alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
+        //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
+	console.error("WS connection error | WS close code: " + e.data.code + " | WS close reason: " + e.data.reason);
         if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
@@ -452,12 +451,12 @@ $(document).ready(function(){
       GUI.setStatus("connected");
 
       if (! e.data.response) {
-        alert("SIP registration error:\n" + e.data.cause);
+        // alert("SIP registration error:\n" + e.data.cause);
       }
       else {
-        alert("SIP registration error:\n" + e.data.response.status_code.toString() + " " + e.data.response.reason_phrase)
+        // alert("SIP registration error:\n" + e.data.response.status_code.toString() + " " + e.data.response.reason_phrase)
       }
-      if (! window.CustomJsSIPSettings) { window.location.reload(false); }
+      // if (! window.CustomJsSIPSettings) { window.location.reload(false); }
     });
 
     // Start
@@ -471,7 +470,7 @@ $(document).ready(function(){
     $("#login-box").fadeOut(1000, function() {
       $(this).remove();
     });
-    
+
     // Apply custom settings.
     if (window.Settings) {
       if (window.Settings.videoDisabledByDefault) {
@@ -528,16 +527,6 @@ $(document).ready(function(){
       $("body").addClass("bg04");
     });
 
-
-    // Piwik stuff
-
-    try {
-      var piwikTracker = Piwik.getTracker("http://private.versatica.com/piwik/piwik.php", 6);
-      var piwikData = sip_uri + " | " + ws_servers;
-      piwikTracker.setCustomVariable(3, "data", piwikData, "page");
-      piwikTracker.trackPageView();
-      piwikTracker.enableLinkTracking();
-    } catch( err ) {}
   }
 
 });

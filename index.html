@@ -9,10 +9,17 @@
   <meta name="description" content="Tryit JsSIP is a SIP+WebRTC demo application. For commercial support please refer to the Versatica website (http://www.versatica.com) or send an email to info@versatica.com." />
   <link rel="stylesheet" href="css/style.css" type="text/css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
+</head>
+
+
+<body id="body" class="bg01">
+
+  <!-- WebRTC plugin for IE/Safari -->
+  <script src="js/adapter.js" type="text/javascript"></script>
+
   <script src="js/jquery-1.6.1.min.js" type="text/javascript"></script>
   <script src="js/jquery.balloon.min.js" type="text/javascript"></script>
   <script src="js/parseuri.js" type="text/javascript"></script>
-  <script src="http://private.versatica.com/piwik/piwik.js" type="text/javascript"></script>
   <script src="js/init.js" type="text/javascript"></script>
   <script src="js/gui.js" type="text/javascript"></script>
 
@@ -31,12 +38,8 @@
       document.write('<script src="http://jssip.net/download/jssip-devel.js"><\/script>');
     }
   </script>
-</head>
 
 
-<body id="body" class="bg01">
-
-  <a href="js/custom.REMOVE_THIS.js" style="display: none">real hack</a>
 
   <div id="top-bar">
     <div class="description">
@@ -227,12 +230,12 @@
 
 
     <div id="webcam">
-      <video id="remoteView" autoplay hidden=true poster="images/logo.png"></video>
+      <video id="remoteView" autoplay _hidden=true poster="images/logo.png"></video>
       <!--<video id="remoteView" autoplay
         src="http://shapeshed.com/examples/HTML5-video-element/video/320x240.ogg">
       </video>-->
 
-      <video id="selfView" autoplay muted="true" hidden=true></video>
+      <video id="selfView" autoplay muted="true" _hidden=true></video>
       <!--<video id="selfView" autoplay
         src="http://shapeshed.com/examples/HTML5-video-element/video/320x240.ogg">
       </video>-->
