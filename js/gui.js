@@ -74,7 +74,7 @@ window.GUI = {
     });
 
     // Started
-    call.on('started',function(e){
+    call.on('accepted',function(e){
       //Attach the streams to the views if it exists.
       if ( call.getLocalStreams().length > 0) {
         // selfView.src = window.URL.createObjattachMediaStreamectURL(call.getLocalStreams()[0]);
@@ -562,7 +562,7 @@ window.GUI = {
 
   jssipCall : function(target) {
       var views, selfView, remoteView, mediaTypes;
-      
+
       selfView = document.getElementById('selfView');
       remoteView = document.getElementById('remoteView');
       views = {selfView: selfView, remoteView: remoteView};

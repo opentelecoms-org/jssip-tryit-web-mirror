@@ -1,5 +1,7 @@
 $(document).ready(function(){
 
+  console.log('loaded JsSIP version %s', JsSIP.version);
+
   // Global variables.
   PageTitle = "JsSIP Tryit";
   document.title = PageTitle;
@@ -292,6 +294,7 @@ $(document).ready(function(){
       var hack_ip_in_contact = $("#advanced-settings-form input[name$='hack_ip_in_contact']").is(':checked');
 
       configuration  = {
+        log: { level: 'debug' },
         uri: sip_uri,
         password:  sip_password,
         ws_servers:  ws_servers,
