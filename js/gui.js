@@ -11,16 +11,21 @@ window.GUI = {
 
 
   phoneChatButtonPressed : function() {
-    var user, session,
+    var user, session, uri,
       target = phone_dialed_number_screen.val();
 
     if (target) {
+      uri = MyPhone.normalizeTarget(target);
+      if (! uri) {
+        throw new Error("wrong target: '%s'", target)
+      }
+
       phone_dialed_number_screen.val("");
-      session = GUI.getSession(target);
+      session = GUI.getSession(uri.toString());
 
       // If this is a new session create it without call.
       if (!session) {
-        session = GUI.createSession(user, target);
+        session = GUI.createSession(uri.user, uri.toString());
         GUI.setCallSessionStatus(session, "inactive");
       }
 
@@ -37,7 +42,7 @@ window.GUI = {
     var display_name, status,
         request = e.data.request,
         call = e.data.session,
-        uri = call.remote_identity.uri,
+        uri = call.remote_identity.uri.toString(),
         session = GUI.getSession(uri);
 
     display_name = call.remote_identity.display_name || call.remote_identity.uri.user;
@@ -132,13 +137,13 @@ window.GUI = {
    */
   new_message : function(e) {
     var display_name, text,
-      message = e.data.message,
       request = e.data.request,
-      uri = message.remote_identity,
+      message = e.data.message,
+      uri = message.remote_identity.uri.toString(),
       session = GUI.getSession(uri);
 
     if (message.direction === 'incoming') {
-      display_name = request.from.display_name || request.from.uri.user;
+      display_name = message.remote_identity.display_name || message.remote_identity.uri.user;
       text = request.body;
 
       // If this is a new session create it with call status "inactive", and add the message.
@@ -198,7 +203,7 @@ window.GUI = {
     var session_found = null;
 
     $("#sessions > .session").each(function(i, session) {
-      if (uri == $(this).find(".peer > .uri").text()) {
+      if (uri === $(this).find(".peer > .uri").text()) {
         session_found = session;
         return false;
       }
@@ -503,7 +508,7 @@ window.GUI = {
 
 
   setDelayedCallSessionStatus : function(uri, status, description, force) {
-    var session = GUI.getSession(uri);
+    var session = GUI.getSession(uri.toString());
     if (session)
       GUI.setCallSessionStatus(session, status, description, force);
   },
