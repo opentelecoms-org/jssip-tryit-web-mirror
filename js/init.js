@@ -349,7 +349,7 @@ $(document).ready(function(){
 
       if (! ws_was_connected) {
         //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
-	console.error("WS connection error | WS close code: " + e.data.code + " | WS close reason: " + e.data.reason);
+	      console.error("WS connection error | WS close code: " + e.data.code + " | WS close reason: " + e.data.reason);
         if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
@@ -431,12 +431,25 @@ $(document).ready(function(){
       GUI.setStatus("registered");
 
       if (invitedBy) {
+        // This fails in Chrome M38 (it does not propmt for getUseMedia).
+        // phone_dialed_number_screen.val(invitedBy);
+        // phone_call_button.click();
+        // var invited_session = GUI.getSession("sip:" + invitedBy + "@" + tryit_sip_domain);
+        // invitedBy = null;
+
+        // $(invited_session).find(".chat > input[type='text']").val("Hi there, you have invited me to call you :)");
+        // var e = jQuery.Event("keydown");
+        // e.which = 13  // Enter
+        // $(invited_session).find(".chat > input[type='text']").trigger(e);
+        // $(invited_session).find(".chat > input[type='text']").focus();
+
+        // So let's just chat.
         phone_dialed_number_screen.val(invitedBy);
-        phone_call_button.click();
+        phone_chat_button.click();
         var invited_session = GUI.getSession("sip:" + invitedBy + "@" + tryit_sip_domain);
         invitedBy = null;
 
-        $(invited_session).find(".chat > input[type='text']").val("Hi there, you have invited me to call you :)");
+        $(invited_session).find(".chat > input[type='text']").val("Hi there, wanna talk?");
         var e = jQuery.Event("keydown");
         e.which = 13  // Enter
         $(invited_session).find(".chat > input[type='text']").trigger(e);
