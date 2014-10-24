@@ -11,24 +11,21 @@ window.GUI = {
 
 
   phoneChatButtonPressed : function() {
-    var user, session,
-      uri = phone_dialed_number_screen.val();
+    var user, session, uri,
+      target = phone_dialed_number_screen.val();
 
-    if (uri) {
-      uri = JsSIP.Utils.normalizeURI(uri, MyPhone.configuration.hostport_params);
-      if (uri) {
-        user = uri.user;
-      } else {
-        alert('Invalid target');
-        return;
+    if (target) {
+      uri = MyPhone.normalizeTarget(target);
+      if (! uri) {
+        throw new Error("wrong target: '%s'", target)
       }
 
       phone_dialed_number_screen.val("");
-      session = GUI.getSession(uri);
+      session = GUI.getSession(uri.toString());
 
       // If this is a new session create it without call.
       if (!session) {
-        session = GUI.createSession(user, uri);
+        session = GUI.createSession(uri.user, uri.toString());
         GUI.setCallSessionStatus(session, "inactive");
       }
 
@@ -45,7 +42,7 @@ window.GUI = {
     var display_name, status,
         request = e.data.request,
         call = e.data.session,
-        uri = call.remote_identity.uri,
+        uri = call.remote_identity.uri.toString(),
         session = GUI.getSession(uri);
 
     display_name = call.remote_identity.display_name || call.remote_identity.uri.user;
@@ -85,12 +82,16 @@ window.GUI = {
     call.on('accepted',function(e){
       //Attach the streams to the views if it exists.
       if ( call.getLocalStreams().length > 0) {
-        selfView.src = window.URL.createObjectURL(call.getLocalStreams()[0]);
+        // selfView.src = window.URL.createObjattachMediaStreamectURL(call.getLocalStreams()[0]);
+        // Use the helper form plugin-adapter.js:
+        selfView = attachMediaStream(selfView, call.getLocalStreams()[0]);
         selfView.volume = 0;
       }
 
       if ( call.getRemoteStreams().length > 0) {
-        remoteView.src = window.URL.createObjectURL(call.getRemoteStreams()[0]);
+        //remoteView.src = window.URL.createObjectURL(call.getRemoteStreams()[0]);
+        // Use the helper form plugin-adapter.js:
+        remoteView = attachMediaStream(remoteView, call.getRemoteStreams()[0]);
       }
 
       GUI.setCallSessionStatus(session, 'answered');
@@ -121,22 +122,6 @@ window.GUI = {
      }
    });
 
-   call.on('hold',function(e) {
-       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
-       soundPlayer.play();
-
-       GUI.setCallSessionStatus(session, 'hold', e.data.originator);
-   });
-
-   call.on('unhold',function(e) {
-       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
-       soundPlayer.play();
-
-       GUI.setCallSessionStatus(session, 'unhold', e.data.originator);
-   });
-
-
-
     // Ended
     call.on('ended', function(e) {
       var cause = e.data.cause;
@@ -152,13 +137,13 @@ window.GUI = {
    */
   new_message : function(e) {
     var display_name, text,
-      message = e.data.message,
       request = e.data.request,
-      uri = message.remote_identity,
+      message = e.data.message,
+      uri = message.remote_identity.uri.toString(),
       session = GUI.getSession(uri);
 
     if (message.direction === 'incoming') {
-      display_name = request.from.display_name || request.from.uri.user;
+      display_name = message.remote_identity.display_name || message.remote_identity.uri.user;
       text = request.body;
 
       // If this is a new session create it with call status "inactive", and add the message.
@@ -218,7 +203,7 @@ window.GUI = {
     var session_found = null;
 
     $("#sessions > .session").each(function(i, session) {
-      if (uri == $(this).find(".peer > .uri").text()) {
+      if (uri === $(this).find(".peer > .uri").text()) {
         session_found = session;
         return false;
       }
@@ -244,8 +229,6 @@ window.GUI = {
           <div class="button dial"></div> \
           <div class="button hangup"></div> \
           <div class="button dtmf"></div> \
-          <div class="button hold"></div> \
-          <div class="button resume"></div> \
           <div class="dtmf-box"> \
             <div class="dtmf-row"> \
               <div class="dtmf-button digit-1">1</div> \
@@ -406,11 +389,11 @@ window.GUI = {
         status_text.text(description || "trying...");
 
         // unhide HTML Video Elements
-        $('#remoteView').attr('hidden', false);
-        $('#selfView').attr('hidden', false);
+        //$('#remoteView').attr('hidden', false);
+        //$('#selfView').attr('hidden', false);
 
         // Set background image
-        $('#remoteView').attr('poster', "images/logo.png");
+        //$('#remoteView').attr('poster', "images/logo.png");
 
         // Hide DTMF box.
         dtmf_box.hide();
@@ -451,42 +434,6 @@ window.GUI = {
 
           session.call.sendDTMF($(this).text());
         });
-  
-        button_hold.click(function(){
-          session.call.hold();
-        });
-
-        break;
-
-      case "hold":
-      case "unhold":
-        call.removeClass();
-        if (session.call.isOnHold().local) {
-          call.addClass("call on-hold");
-          button_resume.click(function(){
-            session.call.unhold();
-          });
-        } else {
-          call.addClass("call answered");
-          button_hold.click(function(){
-            session.call.hold();
-          });
-        }
-
-        var local_hold = session.call.isOnHold().local;
-        var remote_hold = session.call.isOnHold().remote;
-
-        var status = "hold by";
-        status += local_hold?" local ":"";
-
-        if (remote_hold) {
-          if (local_hold)
-            status += "/";
-
-          status += " remote";
-        }
-        status_text.text(local_hold||remote_hold?status:"call answered");
-
 
         break;
 
@@ -509,16 +456,17 @@ window.GUI = {
 
         button_dial.click(function() {
           session.call.answer({
-            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
+            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
+            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
           });
         });
 
         // unhide HTML Video Elements
-        $('#remoteView').attr('hidden', false);
-        $('#selfView').attr('hidden', false);
+        //$('#remoteView').attr('hidden', false);
+        //$('#selfView').attr('hidden', false);
 
         // Set background image
-        $('#remoteView').attr('poster', "images/logo.png");
+        //$('#remoteView').attr('poster', "images/logo.png");
 
         // Hide DTMF box.
         dtmf_box.hide();
@@ -554,13 +502,13 @@ window.GUI = {
     }
 
     // hide HTML Video Elements
-    $('#remoteView').attr('hidden', true);
-    $('#selfView').attr('hidden', true);
+    //$('#remoteView').attr('hidden', true);
+    //$('#selfView').attr('hidden', true);
   },
 
 
   setDelayedCallSessionStatus : function(uri, status, description, force) {
-    var session = GUI.getSession(uri);
+    var session = GUI.getSession(uri.toString());
     if (session)
       GUI.setCallSessionStatus(session, status, description, force);
   },
@@ -623,12 +571,11 @@ window.GUI = {
       selfView = document.getElementById('selfView');
       remoteView = document.getElementById('remoteView');
       views = {selfView: selfView, remoteView: remoteView};
-      mediaTypes = { audio: true, video:$('#enableVideo').is(':checked')};
 
       try {
         MyPhone.call(target, {
           mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          RTCConstraints: {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]}
+          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
         });
       } catch(e){
         throw(e);
