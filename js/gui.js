@@ -122,6 +122,22 @@ window.GUI = {
      }
    });
 
+   call.on('hold',function(e) {
+       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+       soundPlayer.play();
+
+       GUI.setCallSessionStatus(session, 'hold', e.data.originator);
+   });
+
+   call.on('unhold',function(e) {
+       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+       soundPlayer.play();
+
+       GUI.setCallSessionStatus(session, 'unhold', e.data.originator);
+   });
+
+
+
     // Ended
     call.on('ended', function(e) {
       var cause = e.data.cause;
@@ -229,6 +245,8 @@ window.GUI = {
           <div class="button dial"></div> \
           <div class="button hangup"></div> \
           <div class="button dtmf"></div> \
+          <div class="button hold"></div> \
+          <div class="button resume"></div> \
           <div class="dtmf-box"> \
             <div class="dtmf-row"> \
               <div class="dtmf-button digit-1">1</div> \
@@ -434,6 +452,41 @@ window.GUI = {
 
           session.call.sendDTMF($(this).text());
         });
+  
+        button_hold.click(function(){
+          session.call.hold();
+        });
+
+        break;
+
+      case "hold":
+      case "unhold":
+        if (session.call.isOnHold().local) {
+          call.removeClass();
+          call.addClass("call on-hold");
+          button_resume.click(function(){
+            session.call.unhold();
+          });
+        } else {
+          GUI.setCallSessionStatus(session, 'answered');
+        }
+
+        var local_hold = session.call.isOnHold().local;
+        var remote_hold = session.call.isOnHold().remote;
+
+        var status = "hold by";
+        status += local_hold?" local ":"";
+
+        if (remote_hold) {
+          if (local_hold)
+            status += "/";
+
+          status += " remote";
+        }
+
+        if (local_hold||remote_hold) {
+          status_text.text(status);
+        }
 
         break;
 
@@ -457,7 +510,7 @@ window.GUI = {
         button_dial.click(function() {
           session.call.answer({
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
+            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
           });
         });
 
@@ -575,7 +628,7 @@ window.GUI = {
       try {
         MyPhone.call(target, {
           mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
+          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
         });
       } catch(e){
         throw(e);
