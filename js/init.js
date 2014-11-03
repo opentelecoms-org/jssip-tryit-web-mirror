@@ -348,9 +348,9 @@ $(document).ready(function(){
       });
 
       if (! ws_was_connected) {
-        //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
+              //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
 	      console.error("WS connection error | WS close code: " + e.data.code + " | WS close reason: " + e.data.reason);
-        if (! window.CustomJsSIPSettings) { window.location.reload(false); }
+        //if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
 
