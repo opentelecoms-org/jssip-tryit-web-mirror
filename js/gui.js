@@ -509,8 +509,7 @@ window.GUI = {
 
         button_dial.click(function() {
           session.call.answer({
-            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
+            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
           });
         });
 
@@ -627,8 +626,7 @@ window.GUI = {
 
       try {
         MyPhone.call(target, {
-          mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
+          mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
         });
       } catch(e){
         throw(e);
