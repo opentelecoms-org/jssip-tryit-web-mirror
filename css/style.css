@@ -717,8 +717,7 @@ div.balloonInvitationTip a:hover {
   z-index: 200;
   position: absolute;
   top: 60px;
-  /* left: 108px;  Uncomment when hold/resume is done */
-  left: 74px;
+  left: 108px;
   background: url("../images/transparent-black-75-bg.png");
   border: 1px solid #FFF;
   opacity: 0.8;
@@ -745,8 +744,7 @@ div.balloonInvitationTip a:hover {
 
 #sessions .session .container > .call .call-status {
   float: left;
-  /* width: 144px; Uncomment when hold/resume is useful */
-  width: 178px;
+  width: 144px;
   height: 24px;
   padding-top: 8px;
   text-align: center;

@@ -348,8 +348,8 @@ $(document).ready(function(){
       });
 
       if (! ws_was_connected) {
-              //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
-	      console.error("WS connection error | WS close code: " + e.data.code + " | WS close reason: " + e.data.reason);
+        //alert("WS connection error:\n\n- WS close code: " + e.data.code + "\n- WS close reason: " + e.data.reason);
+	      console.error("WS connection error | WS close code: " + e.code + " | WS close reason: " + e.reason);
         //if (! window.CustomJsSIPSettings) { window.location.reload(false); }
       }
     });
@@ -417,7 +417,7 @@ $(document).ready(function(){
     // Call/Message reception callbacks
     MyPhone.on('newRTCSession', function(e) {
       // Set a global '_Session' variable with the session for testing.
-      _Session = e.data.session;
+      _Session = e.session;
       GUI.new_session(e)
     });
 
@@ -466,7 +466,7 @@ $(document).ready(function(){
       console.info('Registration failure');
       GUI.setStatus("connected");
 
-      if (! e.data.response) {
+      if (! e.response) {
         // alert("SIP registration error:\n" + e.data.cause);
       }
       else {

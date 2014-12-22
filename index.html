@@ -35,7 +35,8 @@
       console.info("*** CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
       document.write('<script src="' + CustomJsSIP + '"><\/script>');
     } else {
-      document.write('<script src="js/jssip-0.5.0.js"><\/script>');
+      document.write('<script src="js/jssip-0.6.0.js"><\/script>');
+      document.write('<script>JsSIP.debug.enable("JsSIP:*");<\/script>');
     }
   </script>
 

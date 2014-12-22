@@ -40,8 +40,8 @@ window.GUI = {
   new_session : function(e) {
 
     var display_name, status,
-        request = e.data.request,
-        call = e.data.session,
+        request = e.request,
+        call = e.session,
         uri = call.remote_identity.uri.toString(),
         session = GUI.getSession(uri);
 
@@ -73,7 +73,7 @@ window.GUI = {
 
     // Progress
     call.on('progress',function(e){
-      if (e.data.originator === 'remote') {
+      if (e.originator === 'remote') {
         GUI.setCallSessionStatus(session, 'in-progress');
       }
     });
@@ -100,10 +100,10 @@ window.GUI = {
     // Failed
     call.on('failed',function(e) {
       var
-        cause = e.data.cause,
-        response = e.data.response;
+        cause = e.cause,
+        response = e.response;
 
-      if (e.data.originator === 'remote' && cause.match("SIP;cause=200", "i")) {
+      if (e.originator === 'remote' && cause.match("SIP;cause=200", "i")) {
         cause = 'answered_elsewhere';
       }
 
@@ -115,16 +115,32 @@ window.GUI = {
 
     // NewDTMF
    call.on('newDTMF',function(e) {
-     if (e.data.originator === 'remote') {
-       sound_file = e.data.dtmf.tone;
+     if (e.originator === 'remote') {
+       sound_file = e.dtmf.tone;
        soundPlayer.setAttribute("src", "sounds/dialpad/" + sound_file + ".ogg");
        soundPlayer.play();
      }
    });
 
+   call.on('hold',function(e) {
+       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+       soundPlayer.play();
+
+       GUI.setCallSessionStatus(session, 'hold', e.originator);
+   });
+
+   call.on('unhold',function(e) {
+       soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+       soundPlayer.play();
+
+       GUI.setCallSessionStatus(session, 'unhold', e.originator);
+   });
+
+
+
     // Ended
     call.on('ended', function(e) {
-      var cause = e.data.cause;
+      var cause = e.cause;
 
       GUI.setCallSessionStatus(session, "terminated", cause);
       GUI.removeSession(session, 1500);
@@ -137,8 +153,8 @@ window.GUI = {
    */
   new_message : function(e) {
     var display_name, text,
-      request = e.data.request,
-      message = e.data.message,
+      request = e.request,
+      message = e.message,
       uri = message.remote_identity.uri.toString(),
       session = GUI.getSession(uri);
 
@@ -157,11 +173,11 @@ window.GUI = {
       $(session).find(".chat input").focus();
     } else {
       message.on('failed', function(e){
-        var response = e.data.response;
+        var response = e.response;
         if (response)
           GUI.addChatMessage(session, "error", response.status_code.toString() + " " + response.reason_phrase);
         else
-          GUI.addChatMessage(session, "error", e.data.cause.toString());
+          GUI.addChatMessage(session, "error", e.cause.toString());
       });
     }
   },
@@ -229,6 +245,8 @@ window.GUI = {
           <div class="button dial"></div> \
           <div class="button hangup"></div> \
           <div class="button dtmf"></div> \
+          <div class="button hold"></div> \
+          <div class="button resume"></div> \
           <div class="dtmf-box"> \
             <div class="dtmf-row"> \
               <div class="dtmf-button digit-1">1</div> \
@@ -435,6 +453,41 @@ window.GUI = {
           session.call.sendDTMF($(this).text());
         });
 
+        button_hold.click(function(){
+          session.call.hold();
+        });
+
+        break;
+
+      case "hold":
+      case "unhold":
+        if (session.call.isOnHold().local) {
+          call.removeClass();
+          call.addClass("call on-hold");
+          button_resume.click(function(){
+            session.call.unhold();
+          });
+        } else {
+          GUI.setCallSessionStatus(session, 'answered');
+        }
+
+        var local_hold = session.call.isOnHold().local;
+        var remote_hold = session.call.isOnHold().remote;
+
+        var status = "hold by";
+        status += local_hold?" local ":"";
+
+        if (remote_hold) {
+          if (local_hold)
+            status += "/";
+
+          status += " remote";
+        }
+
+        if (local_hold||remote_hold) {
+          status_text.text(status);
+        }
+
         break;
 
       case "terminated":
@@ -457,7 +510,7 @@ window.GUI = {
         button_dial.click(function() {
           session.call.answer({
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
+            RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
           });
         });
 
@@ -575,7 +628,7 @@ window.GUI = {
       try {
         MyPhone.call(target, {
           mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: false } }
+          RTCOfferConstraints: { mandatory: { OfferToReceiveAudio: true } }
         });
       } catch(e){
         throw(e);
