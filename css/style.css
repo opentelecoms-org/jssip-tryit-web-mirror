@@ -148,7 +148,7 @@ div.balloonInvitationTip a:hover {
   /*margin-top: 100px;*/
   left: 0;
   right: 0;
-  top: -20%;
+  top: 0;
   bottom: 0;
   background: url("../images/transparent-25-bg.png") repeat;
   border-radius: 10px;
