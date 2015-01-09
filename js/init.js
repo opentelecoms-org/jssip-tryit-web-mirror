@@ -1,11 +1,19 @@
+// Global variables (kill me).
+var register_checkbox = null;
+var phone_dialed_number_screen = null;
+var phone_call_button = null;
+var phone_chat_button = null;
+var phone_dialpad_button = null;
+var soundPlayer = null;
+var _Session = null;  // The last RTCSession instance.
+var peerconnection_config;
+
+
 $(document).ready(function(){
 
-  console.log('loaded JsSIP version %s', JsSIP.version);
-
   // Global variables.
-  PageTitle = "JsSIP Tryit";
+  var PageTitle = "JsSIP Tryit";
   document.title = PageTitle;
-  _Session = null;  // The last RTCSession instance.
 
   register_checkbox = $("#phone > .status #register");
   phone_dialed_number_screen = $("#phone > .controls  input.destination");
@@ -272,25 +280,12 @@ $(document).ready(function(){
       var register_expires = window.parseInt($("#advanced-settings-form input[name$='register_expires']").val());
       var registrar_server = $("#advanced-settings-form input[name$='registrar_server']").val();
       var no_answer_timeout = window.parseInt($("#advanced-settings-form input[name$='no_answer_timeout']").val());
-      var trace_sip = $("#advanced-settings-form input[name$='trace_sip']").is(':checked');
-      var stun_servers = $("#advanced-settings-form input[name$='stun_servers']").val();
-      // To JSON (in case of a simple string we must enclose between ").
-      if (stun_servers) {
-        if (stun_servers.charAt(0) != "[")
-          stun_servers = '"' + stun_servers + '"'
-        stun_servers = window.JSON.parse(stun_servers);
-      }
-      var turn_servers = $("#advanced-settings-form input[name$='turn_servers']").val();
-      // To JSON (in case of a simple string we must enclose between ").
-      if (turn_servers) {
-        if (turn_servers.charAt(0) != "[" && turn_servers.charAt(0) !="{")
-          turn_servers = '"' + turn_servers + '"'
-        turn_servers = window.JSON.parse(turn_servers);
-      }
+      peerconnection_config = JSON.parse($("#advanced-settings-form input[name$='peerconnection_config']").val());
       var use_preloaded_route = $("#advanced-settings-form input[name$='use_preloaded_route']").is(':checked');
       var connection_recovery_min_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_min_interval']").val());
       var connection_recovery_max_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_max_interval']").val());
       var hack_via_tcp = $("#advanced-settings-form input[name$='hack_via_tcp']").is(':checked');
+      var hack_via_ws = $("#advanced-settings-form input[name$='hack_via_ws']").is(':checked');
       var hack_ip_in_contact = $("#advanced-settings-form input[name$='hack_ip_in_contact']").is(':checked');
 
       configuration  = {
@@ -304,13 +299,11 @@ $(document).ready(function(){
         register_expires: register_expires,
         registrar_server: registrar_server,
         no_answer_timeout: no_answer_timeout,
-        trace_sip: trace_sip,
-        stun_servers: stun_servers,
-        turn_servers: turn_servers,
         use_preloaded_route: use_preloaded_route,
         connection_recovery_min_interval: connection_recovery_min_interval,
         connection_recovery_max_interval: connection_recovery_max_interval,
         hack_via_tcp: hack_via_tcp,
+        hack_via_ws: hack_via_ws,
         hack_ip_in_contact: hack_ip_in_contact
       };
     }

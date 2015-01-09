@@ -13,10 +13,6 @@
 
 
 <body id="body" class="bg01">
-
-  <!-- WebRTC plugin for IE/Safari -->
-  <script src="js/adapter.js" type="text/javascript"></script>
-
   <script src="js/jquery-1.6.1.min.js" type="text/javascript"></script>
   <script src="js/jquery.balloon.min.js" type="text/javascript"></script>
   <script src="js/parseuri.js" type="text/javascript"></script>
@@ -36,9 +32,10 @@
       document.write('<script src="' + CustomJsSIP + '"><\/script>');
     } else {
       document.write('<script src="js/jssip-0.6.0.js"><\/script>');
-      document.write('<script>JsSIP.debug.enable("JsSIP:*");<\/script>');
     }
   </script>
+
+  <script>JsSIP.debug.enable("*");</script>
 
 
 
@@ -85,7 +82,7 @@
 
     <div id="advanced-settings">
       <div class="close"></div>
-      <p class="link-jssip-doc">Read the documentation of the advanced settings <a href="http://jssip.net/documentation/devel/api/ua_configuration_parameters/" target="_blank">here</a>.</p>
+      <p class="link-jssip-doc">Read the documentation of the advanced settings <a href="http://jssip.net/documentation/" target="_blank">here</a>.</p>
 
       <form id="advanced-settings-form" action="/">
         <table>
@@ -110,16 +107,8 @@
             <td class="value"><input type="text" name="no_answer_timeout" value="60"></td>
           </tr>
           <tr>
-            <td class="label"><label>trace_sip</label></td>
-            <td class="value"><input type="checkbox" name="trace_sip" checked></td>
-          </tr>
-          <tr>
-            <td class="label"><label>stun_servers</label></td>
-            <td class="value"><input type="text" name="stun_servers" value="stun:74.125.132.127:19302"></td>
-          </tr>
-          <tr>
-            <td class="label"><label>turn_servers</label></td>
-            <td class="value"><input type="text" name="turn_servers" value=""></td>
+            <td class="label"><label>peerconnection_config (use JSON)</label></td>
+            <td class="value"><input type="text" name="peerconnection_config" value='{ "iceServers": [ {"urls": ["stun:74.125.132.127:19302"]} ] }'></td>
           </tr>
           <tr>
             <td class="label"><label>use_preloaded_route</label></td>
@@ -136,6 +125,10 @@
           <tr>
             <td class="label"><label>hack_via_tcp</label></td>
             <td class="value"><input type="checkbox" name="hack_via_tcp"></td>
+          </tr>
+          <tr>
+            <td class="label"><label>hack_via_ws</label></td>
+            <td class="value"><input type="checkbox" name="hack_via_ws"></td>
           </tr>
           <tr>
             <td class="label"><label>hack_ip_in_contact</label></td>
