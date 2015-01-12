@@ -11,6 +11,8 @@ var peerconnection_config;
 
 $(document).ready(function(){
 
+  $('#use-tryit-account-link a').focus();
+
   // Global variables.
   var PageTitle = "JsSIP Tryit";
   document.title = PageTitle;
@@ -61,7 +63,6 @@ $(document).ready(function(){
 
 
   // Initialization.
-  login_display_name.focus();
   login_ws_servers.val(tryit_ws_uri);
 
 

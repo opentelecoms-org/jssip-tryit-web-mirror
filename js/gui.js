@@ -86,14 +86,14 @@ $(document).ready(function(){
       // Started
       call.on('accepted',function(e){
         //Attach the streams to the views if it exists.
-        if ( call.getLocalStreams().length > 0) {
-          selfView = JsSIP.rtcninja.attachMediaStream(selfView, call.getLocalStreams()[0]);
+        if ( call.connection.getLocalStreams().length > 0) {
+          selfView = JsSIP.rtcninja.attachMediaStream(selfView, call.connection.getLocalStreams()[0]);
           selfView.volume = 0;
         }
 
         // NO: Use on('addstream') as below.
-        // if ( call.getRemoteStreams().length > 0) {
-        //   remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, call.getRemoteStreams()[0]);
+        // if ( call.connection.getRemoteStreams().length > 0) {
+        //   remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, call.connection.getRemoteStreams()[0]);
         // }
 
         GUI.setCallSessionStatus(session, 'answered');
@@ -672,7 +672,7 @@ $(document).ready(function(){
     function useNewLocalStream(stream) {
       if (! _Session) { return; }
 
-      var oldStream = _Session.getLocalStreams()[0];
+      var oldStream = _Session.connection.getLocalStreams()[0];
 
       _Session.connection.removeStream(oldStream);
       JsSIP.rtcninja.closeMediaStream(oldStream);

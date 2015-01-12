@@ -14183,14 +14183,10 @@ RTCSession.prototype.isOnHold = function() {
 
 
 /**
- * RTCPeerconnection handlers
+ * Get the rtcninja.Connection instance.
  */
-RTCSession.prototype.getLocalStreams = function() {
-  return this.connection && this.connection.getLocalStreams();
-};
-
-RTCSession.prototype.getRemoteStreams = function() {
-  return this.connection && this.connection.getRemoteStreams();
+RTCSession.prototype.getConnection = function() {
+  return this.connection;
 };
 
 
@@ -15048,10 +15044,6 @@ function sendReinvite(options) {
     receiveReinviteResponse.call(self, response);
   };
 
-  // TODO: remove
-  console.log('-------------- this.rtcOfferConstraints:');
-  console.warn(this.rtcOfferConstraints);
-
   createLocalDescription.call(this, 'offer',
     // success
     function(sdp) {
@@ -15294,7 +15286,7 @@ function acceptAndTerminate(response, status_code, reason_phrase) {
 
 function toogleMuteAudio(mute) {
   var streamIdx, trackIdx, tracks,
-    localStreams = this.getLocalStreams();
+    localStreams = this.connection.getLocalStreams();
 
   for (streamIdx in localStreams) {
     tracks = localStreams[streamIdx].getAudioTracks();
@@ -15306,7 +15298,7 @@ function toogleMuteAudio(mute) {
 
 function toogleMuteVideo(mute) {
   var streamIdx, trackIdx, tracks,
-    localStreams = this.getLocalStreams();
+    localStreams = this.connection.getLocalStreams();
 
   for (streamIdx in localStreams) {
     tracks = localStreams[streamIdx].getVideoTracks();
