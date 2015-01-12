@@ -672,7 +672,10 @@ $(document).ready(function(){
     function useNewLocalStream(stream) {
       if (! _Session) { return; }
 
-      _Session.connection.removeStream(_Session.getLocalStreams()[0]);
+      var oldStream = _Session.getLocalStreams()[0];
+
+      _Session.connection.removeStream(oldStream);
+      JsSIP.rtcninja.closeMediaStream(oldStream);
       _Session.connection.addStream(stream);
       _Session.renegotiate();
       selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
