@@ -309,7 +309,7 @@ $(document).ready(function(){
     }
 
     try {
-      MyPhone = new JsSIP.UA(configuration);
+      ua = new JsSIP.UA(configuration);
     } catch(e) {
       console.log(e.toString());
       Y_U_NO(e.message, 4000);
@@ -321,7 +321,7 @@ $(document).ready(function(){
     div_webcam.show();
 
     // Transport connection/disconnection callbacks
-    MyPhone.on('connected', function(e) {
+    ua.on('connected', function(e) {
       document.title = PageTitle;
       GUI.setStatus("connected");
       // Habilitar el phone.
@@ -330,7 +330,7 @@ $(document).ready(function(){
       ws_was_connected = true;
     });
 
-    MyPhone.on('disconnected', function(e) {
+    ua.on('disconnected', function(e) {
       document.title = PageTitle;
       GUI.setStatus("disconnected");
       // Deshabilitar el phone.
@@ -354,7 +354,7 @@ $(document).ready(function(){
         register_checkbox.attr("checked", false);
         // Avoid new change until the registration action ends.
         register_checkbox.attr("disabled", true);
-        MyPhone.register();
+        ua.register();
       }
       else {
         console.warn("register_checkbox has been unchecked");
@@ -362,22 +362,22 @@ $(document).ready(function(){
         register_checkbox.attr("checked", true);
         // Avoid new change until the registration action ends.
         register_checkbox.attr("disabled", true);
-        MyPhone.unregister();
+        ua.unregister();
       }
     });
 
     // NOTE: Para hacer unregister_all (esquina arriba-dcha un cuadro
     // transparente de 20 x 20 px).
     $("#unregister_all").click(function() {
-      MyPhone.unregister({'all': true});
+      ua.unregister({'all': true});
     });
 
     // NOTE: Para desconectarse/conectarse al WebSocket.
     $("#ws_reconnect").click(function() {
-      if (MyPhone.transport.connected)
-        MyPhone.transport.disconnect();
+      if (ua.transport.connected)
+        ua.transport.disconnect();
       else
-        MyPhone.transport.connect();
+        ua.transport.connect();
     });
 
     phone_call_button.click(function(event) {
@@ -408,18 +408,18 @@ $(document).ready(function(){
     });
 
     // Call/Message reception callbacks
-    MyPhone.on('newRTCSession', function(e) {
+    ua.on('newRTCSession', function(e) {
       // Set a global '_Session' variable with the session for testing.
       _Session = e.session;
       GUI.new_session(e)
     });
 
-    MyPhone.on('newMessage', function(e) {
+    ua.on('newMessage', function(e) {
       GUI.new_message(e)
     });
 
     // Registration/Deregistration callbacks
-    MyPhone.on('registered', function(e){
+    ua.on('registered', function(e){
       console.info('Registered');
       GUI.setStatus("registered");
 
@@ -450,12 +450,12 @@ $(document).ready(function(){
       }
     });
 
-    MyPhone.on('unregistered', function(e){
+    ua.on('unregistered', function(e){
       console.info('Deregistered');
       GUI.setStatus("connected");
     });
 
-    MyPhone.on('registrationFailed', function(e) {
+    ua.on('registrationFailed', function(e) {
       console.info('Registration failure');
       GUI.setStatus("connected");
 
@@ -469,7 +469,7 @@ $(document).ready(function(){
     });
 
     // Start
-    MyPhone.start();
+    ua.start();
 
     // Remove login page.
     $("#login-full-background").fadeOut(1000, function() {
@@ -490,11 +490,11 @@ $(document).ready(function(){
 
     // Invitation text and balloon for tryit.jssip.net accounts.
 
-    if (MyPhone.configuration.uri.host === tryit_sip_domain) {
+    if (ua.configuration.uri.host === tryit_sip_domain) {
       $("#call-invitation").show();
       $("#call-invitation").click(function() { return false; });
 
-      var invitation_link = invitation_link_pre + MyPhone.configuration.uri.user;
+      var invitation_link = invitation_link_pre + ua.configuration.uri.user;
 
       $("#call-invitation > a").balloon({
         position: "bottom",

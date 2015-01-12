@@ -13396,6 +13396,10 @@ function RTCSession(ua) {
   // is late SDP being negotiated
   this.late_sdp = false;
 
+  // rtcOfferConstraints (passed in connect()) or rtcAnswerConstraints (passed in answer()).
+  // Keep them for renegotiations.
+  this.rtcOfferAnswerConstraints = null;
+
   // Local MediaStream.
   this.localMediaStream = null;
   this.localMediaStreamLocallyGenerated = false;
@@ -13671,7 +13675,7 @@ RTCSession.prototype.answer = function(options) {
     mediaStream = options.mediaStream || null,
     pcConfig = options.pcConfig || {iceServers:[]},
     rtcConstraints = options.rtcConstraints || null,
-    rtcAnswerConstraints = options.rtcOfferConstraints || null;
+    rtcAnswerConstraints = options.rtcAnswerConstraints || null;
 
   this.data = options.data || {};
 
@@ -14046,12 +14050,13 @@ RTCSession.prototype.hold = function() {
   toogleMuteVideo.call(this, true);
 
   if (! isReadyToReinvite.call(this)) {
-    /* If there is a pending 'unhold' action, cancel it and don't queue this one
+    /* If there is a pending 'unhold' or 'renegotiate' action, abort
      * Else, if there isn't any 'hold' action, add this one to the queue
      * Else, if there is already a 'hold' action, skip
      */
     if (this.pending_actions.isPending('unhold')) {
-      this.pending_actions.pop('unhold');
+      return;
+    } else if (this.pending_actions.isPending('renegotiate')) {
       return;
     } else if (!this.pending_actions.isPending('hold')) {
       this.pending_actions.push('hold');
@@ -14110,12 +14115,13 @@ RTCSession.prototype.unhold = function() {
   }
 
   if (! isReadyToReinvite.call(this)) {
-    /* If there is a pending 'hold' action, cancel it and don't queue this one
+    /* If there is a pending 'hold' or 'renegotiate' action, abort
      * Else, if there isn't any 'unhold' action, add this one to the queue
      * Else, if there is already an 'unhold' action, skip
      */
     if (this.pending_actions.isPending('hold')) {
-      this.pending_actions.pop('hold');
+      return;
+    } else if (this.pending_actions.isPending('renegotiate')) {
       return;
     } else if (!this.pending_actions.isPending('unhold')) {
       this.pending_actions.push('unhold');
@@ -14130,6 +14136,37 @@ RTCSession.prototype.unhold = function() {
   }
 
   onunhold.call(this, 'local');
+
+  sendReinvite.call(this);
+};
+
+
+/**
+ * renegotiate
+ */
+RTCSession.prototype.renegotiate = function() {
+  debug('renegotiate()');
+
+  if (this.status !== C.STATUS_WAITING_FOR_ACK && this.status !== C.STATUS_CONFIRMED) {
+    throw new Exceptions.InvalidStateError(this.status);
+  }
+
+  if (! isReadyToReinvite.call(this)) {
+    /* If there is a pending 'hold' or 'unhold' action, abort
+     * Else, if there isn't any 'renegotiate' action, add this one to the queue
+     * Else, if there is already a 'renegotiate' action, skip
+     */
+    if (this.pending_actions.isPending('hold')) {
+      return;
+    } else if (this.pending_actions.isPending('unhold')) {
+      return;
+    } else if (!this.pending_actions.isPending('renegotiate')) {
+      this.pending_actions.push('renegotiate');
+      return;
+    } else {
+      return;
+    }
+  }
 
   sendReinvite.call(this);
 };
@@ -14533,7 +14570,7 @@ RTCSession.prototype.newDTMF = function(data) {
 };
 
 RTCSession.prototype.onReadyToReinvite = function() {
-  var action = (this.pending_actions.length() > 0)? this.pending_actions.shift() : null;
+  var action = (this.pending_actions.length() > 0) ? this.pending_actions.shift() : null;
 
   if (!action) {
     return;
@@ -14543,6 +14580,8 @@ RTCSession.prototype.onReadyToReinvite = function() {
     this.hold();
   } else if (action.name === 'unhold') {
     this.unhold();
+  } else if (action.name === 'renegotiate') {
+    this.renegotiate();
   }
 };
 
@@ -14675,19 +14714,21 @@ function createLocalDescription(type, onSuccess, onFailure, constraints) {
       }
     };
 
-    self.connection.setLocalDescription(desc,
+    connection.setLocalDescription(desc,
       // success
       function() {
         if (connection.iceGatheringState === 'complete') {
           self.rtcReady = true;
-          onSuccess(connection.localDescription.sdp);
-          onSuccess = null;
+          if (onSuccess) {
+            onSuccess(connection.localDescription.sdp);
+            onSuccess = null;
+          }
         }
       },
       // failure
       function(error) {
         self.rtcReady = true;
-        onFailure(error);
+        if (onFailure) { onFailure(error); }
       }
     );
   }
@@ -14839,9 +14880,9 @@ function receiveReinvite(request) {
 
   function createSdp(onSuccess, onFailure) {
     if (! self.late_sdp) {
-      createLocalDescription.call(self, 'answer', onSuccess, onFailure);
+      createLocalDescription.call(self, 'answer', onSuccess, onFailure, self.rtcOfferAnswerConstraints);
     } else {
-      createLocalDescription.call(self, 'offer', onSuccess, onFailure);
+      createLocalDescription.call(self, 'offer', onSuccess, onFailure, self.rtcOfferAnswerConstraints);
     }
   }
 }
@@ -14899,7 +14940,9 @@ function receiveUpdate(request) {
         // failure
         function() {
           request.reply(500);
-        }
+        },
+        // RTC constraints.
+        this.rtcOfferAnswerConstraints
       );
     },
     // failure
@@ -15013,7 +15056,9 @@ function sendReinvite(options) {
         self.onReadyToReinvite();
       }
       self.reinviteFailed();
-    }
+    },
+    // RTC constraints.
+    this.rtcOfferAnswerConstraints
   );
 }
 
@@ -15205,8 +15250,8 @@ function receiveReinviteResponse(response) {
         }
       );
       break;
-    default:
 
+    default:
       this.reinviteFailed();
   }
 }
@@ -21628,7 +21673,7 @@ Connection.prototype.setLocalDescription = function(description, successCallback
 
 			// Ignore new candidates.
 			self.ignoreIceGathering = true;
-			if (self.onicecandidate) { self.onicecandidate(event, null); }
+			if (self.onicecandidate) { self.onicecandidate({candidate: null}, null); }
 
 		}, self.options.gatheringTimeout);
 	}
@@ -21899,7 +21944,7 @@ function setEvents() {
 
 					// Ignore new candidates.
 					self.ignoreIceGathering = true;
-					if (self.onicecandidate) { self.onicecandidate(event, null); }
+					if (self.onicecandidate) { self.onicecandidate({candidate: null}, null); }
 				}, self.options.gatheringTimeoutAfterRelay);
 			}
 
@@ -22555,7 +22600,7 @@ module.exports = require('../package.json').version;
 },{}],38:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "WebRTC API wrapper to deal with different browsers",
   "author": {
     "name": "Iñaki Baz Castillo",
@@ -22583,27 +22628,25 @@ module.exports={
     "browserify": "^8.1.0",
     "fs-extra": "^0.14.0",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
-    "gulp-connect": "^2.2.0",
     "gulp-expect-file": "0.0.7",
     "gulp-filelog": "^0.4.1",
     "gulp-header": "^1.2.2",
     "gulp-jshint": "^1.9.0",
     "gulp-rename": "^1.2.0",
-    "gulp-symlink": "^2.1.0",
     "gulp-uglify": "^1.0.2",
     "jshint-stylish": "^1.0.0",
     "vinyl-transform": "^1.0.0"
   },
   "readme": "# rtcninja.js\n\nWebRTC API wrapper to deal with different browsers.\n\n\n## Installation\n\n* With **npm**:\n\n```bash\n$ npm install rtcninja\n```\n\n* With **bower**:\n\n```bash\n$ bower install rtcninja\n```\n\n## Usage in Node\n\n```javascript\nvar rtcninja = require('rtcninja');\n```\n\n\n## Browserified library\n\nTake a browserified version of the library from the `dist/` folder:\n\n* `dist/rtcninja-X.Y.Z.js`: The uncompressed version.\n* `dist/rtcninja-X.Y.Z.min.js`: The compressed production-ready version.\n* `dist/rtcninja.js`: A copy of the uncompressed version.\n* `dist/rtcninja.min.js`: A copy of the compressed version.\n\nThey expose the global `window.rtcninja` module.\n\n```html\n<script src='rtcninja-X.Y.Z.js'></script>\n```\n\n\n## Usage Example\n\n    // Must first call it.\n    rtcninja();\n    \n    // Then check.\n    if (rtcninja.hasWebRTC()) {\n        // Do something.\n    }\n    else {\n        // Do something.\n    }\n\n\n## Debugging\n\nThe library includes the Node [debug](https://github.com/visionmedia/debug) module. In order to enable debugging:\n\nIn Node set the `DEBUG=rtcninja*` environment variable before running the application, or set it at the top of the script:\n\n```javascript\n    process.env.DEBUG = 'rtcninja*';\n```\n\nIn the browser run `rtcninja.debug.enable('rtcninja*');` and reload the page. Note that the debugging settings are stored into the browser LocalStorage. To disable it run `rtcninja.debug.disable('rtcninja*');`.\n\n\n## Documentation\n\n*TODO*\n\n\n## Author\n\nIñaki Baz Castillo.\n\n\n## License\n\nISC.\n",
   "readmeFilename": "README.md",
-  "gitHead": "dbd71c8ceae2764b09ea4dd984dc02d574488ea2",
+  "gitHead": "c0a838b3dbc3343a3d57db9ecf0ca3349427e627",
   "bugs": {
     "url": "https://github.com/ibc/rtcninja.js/issues"
   },
-  "_id": "rtcninja@0.2.5",
+  "_id": "rtcninja@0.2.6",
   "scripts": {},
-  "_shasum": "02f6e3f01e3f2069a02d5ec4c45c8642b4ed64ee",
-  "_from": "rtcninja@>=0.2.4 <0.3.0"
+  "_shasum": "f92a02f4add38467836088ac9560abfa66976727",
+  "_from": "rtcninja@>=0.2.6 <0.3.0"
 }
 
 },{}],39:[function(require,module,exports){
@@ -23206,7 +23249,7 @@ module.exports={
   },
   "dependencies": {
     "debug": "^2.1.1",
-    "rtcninja": "^0.2.5",
+    "rtcninja": "^0.2.6",
     "sdp-transform": "~1.1.0",
     "websocket": "^1.0.14"
   },

@@ -20,7 +20,7 @@ $(document).ready(function(){
         target = phone_dialed_number_screen.val();
 
       if (target) {
-        uri = MyPhone.normalizeTarget(target);
+        uri = ua.normalizeTarget(target);
         if (! uri) {
           throw new Error("wrong target: '%s'", target)
         }
@@ -627,7 +627,7 @@ $(document).ready(function(){
 
 
     jssipCall : function(target) {
-        MyPhone.call(target, {
+        ua.call(target, {
             pcConfig: peerconnection_config,
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
         });
@@ -635,7 +635,7 @@ $(document).ready(function(){
 
 
     jssipMessage : function(uri, text) {
-      MyPhone.sendMessage(uri,text);
+      ua.sendMessage(uri,text);
     },
 
 
