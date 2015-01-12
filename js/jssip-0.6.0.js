@@ -13396,9 +13396,8 @@ function RTCSession(ua) {
   // is late SDP being negotiated
   this.late_sdp = false;
 
-  // rtcOfferConstraints (passed in connect()) or rtcAnswerConstraints (passed in answer()).
-  // Keep them for renegotiations.
-  this.rtcOfferAnswerConstraints = null;
+  // rtcOfferConstraints (passed in connect()) for renegotiations.
+  this.rtcOfferConstraints = null;
 
   // Local MediaStream.
   this.localMediaStream = null;
@@ -14081,7 +14080,7 @@ RTCSession.prototype.hold = function() {
       length = sdp.media.length;
       for (idx=0; idx<length; idx++) {
         var m = sdp.media[idx];
-        if (m.direction === undefined) {
+        if (!m.direction) {
           m.direction = 'sendonly';
         } else if (m.direction === 'sendrecv') {
           m.direction = 'sendonly';
@@ -14294,6 +14293,9 @@ RTCSession.prototype.connect = function(target, options) {
     pcConfig = options.pcConfig || {iceServers:[]},
     rtcConstraints = options.rtcConstraints || null,
     rtcOfferConstraints = options.rtcOfferConstraints || null;
+
+  // Set this.rtcOfferConstraints if given.
+  this.rtcOfferConstraints = rtcOfferConstraints;
 
   this.data = options.data || {};
 
@@ -14885,9 +14887,9 @@ function receiveReinvite(request) {
 
   function createSdp(onSuccess, onFailure) {
     if (! self.late_sdp) {
-      createLocalDescription.call(self, 'answer', onSuccess, onFailure, self.rtcOfferAnswerConstraints);
+      createLocalDescription.call(self, 'answer', onSuccess, onFailure);
     } else {
-      createLocalDescription.call(self, 'offer', onSuccess, onFailure, self.rtcOfferAnswerConstraints);
+      createLocalDescription.call(self, 'offer', onSuccess, onFailure, self.rtcOfferConstraints);
     }
   }
 }
@@ -14950,9 +14952,7 @@ function receiveUpdate(request) {
         // failure
         function() {
           request.reply(500);
-        },
-        // RTC constraints.
-        this.rtcOfferAnswerConstraints
+        }
       );
     },
     // failure
@@ -15048,6 +15048,10 @@ function sendReinvite(options) {
     receiveReinviteResponse.call(self, response);
   };
 
+  // TODO: remove
+  console.log('-------------- this.rtcOfferConstraints:');
+  console.warn(this.rtcOfferConstraints);
+
   createLocalDescription.call(this, 'offer',
     // success
     function(sdp) {
@@ -15068,7 +15072,7 @@ function sendReinvite(options) {
       self.reinviteFailed();
     },
     // RTC constraints.
-    this.rtcOfferAnswerConstraints
+    this.rtcOfferConstraints
   );
 }
 

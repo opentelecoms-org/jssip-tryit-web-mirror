@@ -119,6 +119,8 @@ $(document).ready(function(){
         GUI.removeSession(session, 1500);
         selfView.src = '';
         remoteView.src = '';
+
+        _Session = null;
       });
 
       // NewDTMF
@@ -152,6 +154,8 @@ $(document).ready(function(){
         GUI.removeSession(session, 1500);
         selfView.src = '';
         remoteView.src = '';
+
+        _Session = null;
       });
     },
 
@@ -629,7 +633,8 @@ $(document).ready(function(){
     jssipCall : function(target) {
         ua.call(target, {
             pcConfig: peerconnection_config,
-            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
+            mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
+            rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true }
         });
     },
 
@@ -645,5 +650,33 @@ $(document).ready(function(){
     }
 
   };
+
+
+  // Add/remove video during a call.
+  $('#enableVideo').change(function() {
+    if (! _Session) { return; }
+
+    var mediaConstraints = { audio: true, video: true };
+
+    if (! $(this).is(':checked')) {
+      mediaConstraints.video = false;
+    }
+
+    JsSIP.rtcninja.getUserMedia(mediaConstraints,
+      useNewLocalStream,
+      function(error) {
+        throw error;
+      }
+    );
+
+    function useNewLocalStream(stream) {
+      if (! _Session) { return; }
+
+      _Session.connection.removeStream(_Session.getLocalStreams()[0]);
+      _Session.connection.addStream(stream);
+      _Session.renegotiate();
+      selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
+    }
+  });
 
 });
