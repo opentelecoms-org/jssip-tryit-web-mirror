@@ -14831,10 +14831,15 @@ function receiveReinvite(request) {
     sdp = Parser.parseSDP(request.body);
 
     for (idx=0; idx < sdp.media.length; idx++) {
-      direction = sdp.media[idx].direction || 'sendrecv' || sdp.direction;
+      direction = sdp.media[idx].direction || sdp.direction || 'sendrecv';
 
       if (direction === 'sendonly' || direction === 'inactive') {
         hold = true;
+      }
+      // If at least one of the streams is active don't emit 'hold'.
+      else {
+        hold = false;
+        break;
       }
     }
 
@@ -14913,10 +14918,15 @@ function receiveUpdate(request) {
   sdp = Parser.parseSDP(request.body);
 
   for (idx=0; idx < sdp.media.length; idx++) {
-    direction = sdp.media[idx].direction || 'sendrecv' || sdp.direction;
+    direction = sdp.media[idx].direction || sdp.direction || 'sendrecv';
 
     if (direction !== 'sendonly' && direction !== 'inactive') {
+      hold = true;
+    }
+    // If at least one of the streams is active don't emit 'hold'.
+    else {
       hold = false;
+      break;
     }
   }
 
