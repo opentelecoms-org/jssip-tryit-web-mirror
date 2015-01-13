@@ -677,7 +677,7 @@ $(document).ready(function(){
       _Session.connection.removeStream(oldStream);
       JsSIP.rtcninja.closeMediaStream(oldStream);
       _Session.connection.addStream(stream);
-      _Session.renegotiate();
+      _Session.renegotiate({useUpdate: true});
       selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
     }
   });

@@ -140,6 +140,16 @@ $(document).ready(function(){
     login_form.submit();
   }
 
+  var currentURL = parseUri(window.location.toString());
+
+  // If it's an invitation automatically log-in.
+  var invitedBy = currentURL.queryKey["invited-by"];
+  if (invitedBy) {
+    showFormFromInvitation();
+  }
+
+  var queryUser = currentURL.queryKey["user"];
+
 
   function getBalloonContent(item) {
     var balloon_text;
@@ -195,7 +205,11 @@ $(document).ready(function(){
 
 
   function useTryitAccount() {
-    login_sip_uri.val("sip:" + getRandomUsername() + "@" + tryit_sip_domain);
+    if (! queryUser) {
+      login_sip_uri.val("sip:" + getRandomUsername() + "@" + tryit_sip_domain);
+    } else {
+      login_sip_uri.val("sip:" + queryUser + "@" + tryit_sip_domain);
+    }
     login_sip_password.val("");
     login_ws_servers.val(tryit_ws_uri);
 
@@ -219,14 +233,6 @@ $(document).ready(function(){
       },
       timeout
     );
-  }
-
-
-  // If it's an invitation automatically log-in.
-  var currentURL = parseUri(window.location.toString());
-  var invitedBy = currentURL.queryKey["invited-by"];
-  if (invitedBy) {
-    showFormFromInvitation();
   }
 
 
