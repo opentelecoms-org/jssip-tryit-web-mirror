@@ -149,12 +149,14 @@ $(document).ready(function(){
       // Ended
       call.on('ended', function(e) {
         var cause = e.cause;
+        var oldStream = _Session.connection.getLocalStreams()[0];
 
         GUI.setCallSessionStatus(session, "terminated", cause);
         GUI.removeSession(session, 1500);
         selfView.src = '';
         remoteView.src = '';
 
+        JsSIP.rtcninja.closeMediaStream(oldStream);
         _Session = null;
       });
     },
