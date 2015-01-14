@@ -23,19 +23,37 @@
 
   <!-- Try to load js/custom.js file -->
   <script src="js/custom.js" type="text/javascript"></script>
-
-  <!-- If CustomJsSIP is set in js/custom.js file then load JsSIP from the URL in CustomJsSIP variable.
-       Otherwise load it from http://jssip.net/download/ -->
+  <!-- If CustomJsSIP is set in js/custom.js file then load JsSIP from the URL in CustomJsSIP variable. -->
   <script>
     if (window.CustomJsSIP) {
       console.info("*** CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
       document.write('<script src="' + CustomJsSIP + '"><\/script>');
     } else {
-      document.write('<script src="js/jssip-0.6.0.js"><\/script>');
+      document.write('<script src="js/jssip.js"><\/script>');
     }
   </script>
 
   <script>JsSIP.debug.enable("*");</script>
+
+  <!-- Try to load rtcninja-temasys.js -->
+  <script src="js/rtcninja-temasys-0.2.0.min.js" type="text/javascript"></script>
+  <!-- If CustomJsSIP is set in js/custom.js file then load JsSIP from the URL in CustomJsSIP variable. -->
+  <script>
+    if (window.rtcninjaTemasys) {
+      rtcninjaTemasys({},
+        // alreadyInstalledCb
+        function() {
+          JsSIP.rtcninja({plugin: rtcninjaTemasys});
+        },
+        // needInstallCb
+        function(data) {
+          alert('WebRTC plugin required');
+        },
+        // notRequiredCb
+        null
+      );
+    }
+  </script>
 
 
 

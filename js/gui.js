@@ -2,6 +2,7 @@ $(document).ready(function(){
 
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
+  var localStream, remoteStream;
 
   window.GUI = {
 
@@ -86,8 +87,9 @@ $(document).ready(function(){
       // Started
       call.on('accepted',function(e){
         //Attach the streams to the views if it exists.
-        if ( call.connection.getLocalStreams().length > 0) {
-          selfView = JsSIP.rtcninja.attachMediaStream(selfView, call.connection.getLocalStreams()[0]);
+        if (call.connection.getLocalStreams().length > 0) {
+          localStream = call.connection.getLocalStreams()[0];
+          selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
           selfView.volume = 0;
         }
 
@@ -100,7 +102,8 @@ $(document).ready(function(){
       });
 
       call.on('addstream', function(e) {
-        remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, e.stream);
+        remoteStream = e.stream;
+        remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, remoteStream);
       });
 
       // Failed
@@ -149,15 +152,14 @@ $(document).ready(function(){
       // Ended
       call.on('ended', function(e) {
         var cause = e.cause;
-        var oldStream = _Session.connection.getLocalStreams()[0];
 
         GUI.setCallSessionStatus(session, "terminated", cause);
         GUI.removeSession(session, 1500);
         selfView.src = '';
         remoteView.src = '';
 
-        JsSIP.rtcninja.closeMediaStream(oldStream);
         _Session = null;
+        JsSIP.rtcninja.closeMediaStream(localStream);
       });
     },
 
@@ -523,8 +525,7 @@ $(document).ready(function(){
 
           button_dial.click(function() {
             session.call.answer({
-              pcConfig: peerconnection_config,
-              mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') }
+              pcConfig: peerconnection_config
             });
           });
 
@@ -674,13 +675,14 @@ $(document).ready(function(){
     function useNewLocalStream(stream) {
       if (! _Session) { return; }
 
-      var oldStream = _Session.connection.getLocalStreams()[0];
+      var oldStream = localStream;
 
-      _Session.connection.removeStream(oldStream);
-      JsSIP.rtcninja.closeMediaStream(oldStream);
+      _Session.connection.removeStream(localStream);
+      JsSIP.rtcninja.closeMediaStream(localStream);
       _Session.connection.addStream(stream);
       _Session.renegotiate({useUpdate: true});
       selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
+      localStream = stream;
     }
   });
 
