@@ -287,6 +287,7 @@ $(document).ready(function(){
       var register_expires = window.parseInt($("#advanced-settings-form input[name$='register_expires']").val());
       var registrar_server = $("#advanced-settings-form input[name$='registrar_server']").val();
       var no_answer_timeout = window.parseInt($("#advanced-settings-form input[name$='no_answer_timeout']").val());
+      var session_timers = $("#advanced-settings-form input[name$='session_timers']").is(':checked');
       peerconnection_config = JSON.parse($("#advanced-settings-form input[name$='peerconnection_config']").val());
       var use_preloaded_route = $("#advanced-settings-form input[name$='use_preloaded_route']").is(':checked');
       var connection_recovery_min_interval = window.parseInt($("#advanced-settings-form input[name$='connection_recovery_min_interval']").val());
@@ -306,6 +307,7 @@ $(document).ready(function(){
         register_expires: register_expires,
         registrar_server: registrar_server,
         no_answer_timeout: no_answer_timeout,
+        session_timers: session_timers,
         use_preloaded_route: use_preloaded_route,
         connection_recovery_min_interval: connection_recovery_min_interval,
         connection_recovery_max_interval: connection_recovery_max_interval,

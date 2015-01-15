@@ -366,7 +366,7 @@ $(document).ready(function(){
     },
 
 
-    setCallSessionStatus : function(session, status, description) {
+    setCallSessionStatus : function(session, status, description, realHack) {
       var session = session;
       var uri = $(session).find(".peer > .uri").text();
       var call = $(session).find(".call");
@@ -450,11 +450,19 @@ $(document).ready(function(){
           call.removeClass();
           call.addClass("call answered");
           status_text.text(description || "answered");
+
+          button_hold.click(function(){
+            session.call.hold();
+          });
+
           button_dtmf.click(function() {
             dtmf_box.toggle();
           });
 
+          if (realHack) { return; }
+
           var dtmf_button = $(dtmf_box).find(".dtmf-button");
+          window.dtmf_button = dtmf_button;
           var sound_file;
           dtmf_button.click(function() {
             if ($(this).hasClass("digit-asterisk"))
@@ -469,10 +477,6 @@ $(document).ready(function(){
             session.call.sendDTMF($(this).text());
           });
 
-          button_hold.click(function(){
-            session.call.hold();
-          });
-
           break;
 
         case "hold":
@@ -484,7 +488,7 @@ $(document).ready(function(){
               session.call.unhold();
             });
           } else {
-            GUI.setCallSessionStatus(session, 'answered');
+            GUI.setCallSessionStatus(session, 'answered', null, true);
           }
 
           var local_hold = session.call.isOnHold().local;
@@ -637,7 +641,8 @@ $(document).ready(function(){
         ua.call(target, {
             pcConfig: peerconnection_config,
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-            rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true }
+            rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true },
+            sessionTimersExpires: 8
         });
     },
 
