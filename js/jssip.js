@@ -23526,20 +23526,23 @@ var nativeWebSocket = _global.WebSocket || _global.MozWebSocket;
  * Expose a W3C WebSocket class with just one or two arguments.
  */
 function W3CWebSocket(uri, protocols) {
-	var instance;
+	var native_instance;
 
 	if (protocols) {
-		instance = new nativeWebSocket(uri, protocols);
+		native_instance = new nativeWebSocket(uri, protocols);
 	}
 	else {
-		instance = new nativeWebSocket(uri);
+		native_instance = new nativeWebSocket(uri);
 	}
 
-	return instance;
-}
-
-if (nativeWebSocket) {
-	W3CWebSocket.prototype = nativeWebSocket.prototype;
+	/**
+	 * 'native_instance' is an instance of nativeWebSocket (the browser's WebSocket
+	 * class). Since it is an Object it will be returned as it is when creating an
+	 * instance of W3CWebSocket via 'new W3CWebSocket()'.
+	 *
+	 * ECMAScript 5: http://bclary.com/2004/11/07/#a-13.2.2
+	 */
+	return native_instance;
 }
 
 
@@ -23575,7 +23578,7 @@ module.exports={
     "email": "brian@worlize.com",
     "url": "https://www.worlize.com/"
   },
-  "version": "1.0.14",
+  "version": "1.0.15",
   "repository": {
     "type": "git",
     "url": "https://github.com/theturtle32/WebSocket-Node.git"
@@ -23609,13 +23612,13 @@ module.exports={
     "lib": "./lib"
   },
   "browser": "lib/browser.js",
-  "gitHead": "ee1c2ee1c333a1cbb122e3e385b60f051ea69706",
+  "gitHead": "7cd99112b319c9c52069a13c1c80a3b67167d513",
   "bugs": {
     "url": "https://github.com/theturtle32/WebSocket-Node/issues"
   },
-  "_id": "websocket@1.0.14",
-  "_shasum": "1ef1ab300d7ccc619557367ce172e9cb83bdad49",
-  "_from": "websocket@>=1.0.14 <2.0.0",
+  "_id": "websocket@1.0.15",
+  "_shasum": "cf9f0f9ce08bf20a7f2acac3980ee84b4abb58e1",
+  "_from": "websocket@>=1.0.15 <2.0.0",
   "_npmVersion": "1.4.28",
   "_npmUser": {
     "name": "theturtle32",
@@ -23628,11 +23631,10 @@ module.exports={
     }
   ],
   "dist": {
-    "shasum": "1ef1ab300d7ccc619557367ce172e9cb83bdad49",
-    "tarball": "http://registry.npmjs.org/websocket/-/websocket-1.0.14.tgz"
+    "shasum": "cf9f0f9ce08bf20a7f2acac3980ee84b4abb58e1",
+    "tarball": "http://registry.npmjs.org/websocket/-/websocket-1.0.15.tgz"
   },
-  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.14.tgz",
-  "readme": "ERROR: No README data found!"
+  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.15.tgz"
 }
 
 },{}],46:[function(require,module,exports){
@@ -23668,10 +23670,10 @@ module.exports={
     "debug": "^2.1.1",
     "rtcninja": "^0.2.8",
     "sdp-transform": "~1.1.0",
-    "websocket": "^1.0.14"
+    "websocket": "^1.0.15"
   },
   "devDependencies": {
-    "browserify": "^8.1.0",
+    "browserify": "^8.1.1",
     "fs-extra": "^0.14.0",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-expect-file": "0.0.7",
