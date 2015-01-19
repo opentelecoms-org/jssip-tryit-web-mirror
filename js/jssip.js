@@ -1,5 +1,5 @@
 /*
- * JsSIP.js 0.6.2
+ * JsSIP.js 0.6.4
  * the Javascript SIP library
  * Copyright 2012-2015 José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)
  * Homepage: http://jssip.net
@@ -13547,8 +13547,9 @@ function RTCSession(ua) {
   // is late SDP being negotiated
   this.late_sdp = false;
 
-  // rtcOfferConstraints (passed in connect()) for renegotiations.
+  // Default rtcOfferConstraints and rtcAnswerConstrainsts (passed in connect() or answer()).
   this.rtcOfferConstraints = null;
+  this.rtcAnswerConstraints = null;
 
   // renegotiate() options.
   this.renegotiateOptions = {};
@@ -13716,6 +13717,9 @@ RTCSession.prototype.connect = function(target, options) {
     pcConfig = options.pcConfig || {iceServers:[]},
     rtcConstraints = options.rtcConstraints || null,
     rtcOfferConstraints = options.rtcOfferConstraints || null;
+
+  this.rtcOfferConstraints = rtcOfferConstraints;
+  this.rtcAnswerConstraints = options.rtcAnswerConstraints || null;
 
   // Session Timers.
   if (this.sessionTimers.enabled) {
@@ -13895,8 +13899,10 @@ RTCSession.prototype.answer = function(options) {
   options = options || {};
 
   var idx, length, sdp, tracks,
-    hasAudio = false,
-    hasVideo = false,
+    peerHasAudioLine = false,
+    peerHasVideoLine = false,
+    peerOffersFullAudio = false,
+    peerOffersFullVideo = false,
     self = this,
     request = this.request,
     extraHeaders = options.extraHeaders && options.extraHeaders.slice() || [],
@@ -13905,6 +13911,9 @@ RTCSession.prototype.answer = function(options) {
     pcConfig = options.pcConfig || {iceServers:[]},
     rtcConstraints = options.rtcConstraints || null,
     rtcAnswerConstraints = options.rtcAnswerConstraints || null;
+
+  this.rtcAnswerConstraints = rtcAnswerConstraints;
+  this.rtcOfferConstraints = options.rtcOfferConstraints || null;
 
   // Session Timers.
   if (this.sessionTimers.enabled) {
@@ -13951,11 +13960,17 @@ RTCSession.prototype.answer = function(options) {
   idx = sdp.media.length;
   while(idx--) {
     var m = sdp.media[idx];
-    if (m.type === 'audio' && (!m.direction || m.direction === 'sendrecv')) {
-      hasAudio = true;
+    if (m.type === 'audio') {
+      peerHasAudioLine = true;
+      if (!m.direction || m.direction === 'sendrecv') {
+        peerOffersFullAudio = true;
+      }
     }
-    if (m.type === 'video' && (!m.direction || m.direction === 'sendrecv')) {
-      hasVideo = true;
+    if (m.type === 'video') {
+      peerHasVideoLine = true;
+      if (!m.direction || m.direction === 'sendrecv') {
+        peerOffersFullVideo = true;
+      }
     }
   }
 
@@ -13978,13 +13993,23 @@ RTCSession.prototype.answer = function(options) {
   }
 
   // Set audio constraints based on incoming stream if not supplied
-  if (mediaConstraints.audio === undefined) {
-      mediaConstraints.audio = hasAudio;
+  if (!mediaStream && mediaConstraints.audio === undefined) {
+    mediaConstraints.audio = peerOffersFullAudio;
   }
 
   // Set video constraints based on incoming stream if not supplied
-  if (mediaConstraints.video === undefined) {
-      mediaConstraints.video = hasVideo;
+  if (!mediaStream && mediaConstraints.video === undefined) {
+    mediaConstraints.video = peerOffersFullVideo;
+  }
+
+  // Don't ask for audio if the incoming offer has no audio section
+  if (!mediaStream && !peerHasAudioLine) {
+    mediaConstraints.audio = false;
+  }
+
+  // Don't ask for video if the incoming offer has no video section
+  if (!mediaStream && !peerHasVideoLine) {
+    mediaConstraints.video = false;
   }
 
   // Create a new rtcninja.Connection instance.
@@ -14039,7 +14064,7 @@ RTCSession.prototype.answer = function(options) {
     if (! self.late_sdp) {
       createLocalDescription.call(self, 'answer', rtcSucceeded, rtcFailed, rtcAnswerConstraints);
     } else {
-      createLocalDescription.call(self, 'offer', rtcSucceeded, rtcFailed, rtcAnswerConstraints);
+      createLocalDescription.call(self, 'offer', rtcSucceeded, rtcFailed, self.rtcOfferConstraints);
     }
   }
 
@@ -14208,8 +14233,6 @@ RTCSession.prototype.terminate = function(options) {
         ended.call(this, 'local', null, cause);
       }
   }
-
-  this.close();
 };
 
 
@@ -14559,14 +14582,17 @@ RTCSession.prototype.unhold = function() {
 RTCSession.prototype.renegotiate = function(options) {
   debug('renegotiate()');
 
+  options = options || {};
+
   var self = this,
-    eventHandlers;
+    eventHandlers,
+    rtcOfferConstraints = options.rtcOfferConstraints || null;
 
   if (this.status !== C.STATUS_WAITING_FOR_ACK && this.status !== C.STATUS_CONFIRMED) {
     throw new Exceptions.InvalidStateError(this.status);
   }
 
-  this.renegotiateOptions = options || {};
+  this.renegotiateOptions = options;
 
   if (! isReadyToReinvite.call(this)) {
     /* If there is a pending 'hold' or 'unhold' action, abort
@@ -14601,9 +14627,9 @@ RTCSession.prototype.renegotiate = function(options) {
   };
 
   if (this.renegotiateOptions.useUpdate) {
-    sendUpdate.call(this, {sdpOffer: true, eventHandlers: eventHandlers});
+    sendUpdate.call(this, {sdpOffer: true, eventHandlers: eventHandlers, rtcOfferConstraints: rtcOfferConstraints});
   } else {
-    sendReinvite.call(this, {eventHandlers: eventHandlers});
+    sendReinvite.call(this, {eventHandlers: eventHandlers, rtcOfferConstraints: rtcOfferConstraints});
   }
 };
 
@@ -15088,7 +15114,7 @@ function receiveReinvite(request) {
 
   function createSdp(onSuccess, onFailure) {
     if (! self.late_sdp) {
-      createLocalDescription.call(self, 'answer', onSuccess, onFailure);
+      createLocalDescription.call(self, 'answer', onSuccess, onFailure, self.rtcAnswerConstraints);
     } else {
       createLocalDescription.call(self, 'offer', onSuccess, onFailure, self.rtcOfferConstraints);
     }
@@ -15163,7 +15189,9 @@ function receiveUpdate(request) {
     // failure
     function() {
       request.reply(488);
-    }
+    },
+    // Constraints.
+    this.rtcAnswerConstraints
   );
 }
 
@@ -15292,13 +15320,10 @@ function receiveInviteResponse(response) {
 
   switch(true) {
     case /^100$/.test(response.status_code):
+      this.status = C.STATUS_1XX_RECEIVED;
       break;
 
     case /^1[0-9]{2}$/.test(response.status_code):
-      if (this.status !== C.STATUS_INVITE_SENT && this.status !== C.STATUS_1XX_RECEIVED) {
-        break;
-      }
-
       // Do nothing with 1xx responses without To tag.
       if (!response.to_tag) {
         debug('1xx response received without to tag');
@@ -15382,6 +15407,7 @@ function sendReinvite(options) {
     self = this,
     extraHeaders = options.extraHeaders || [],
     eventHandlers = options.eventHandlers || {},
+    rtcOfferConstraints = options.rtcOfferConstraints || null,
     mangle = options.mangle || null;
 
   extraHeaders.push('Contact: ' + this.contact);
@@ -15431,7 +15457,7 @@ function sendReinvite(options) {
       onFailed();
     },
     // RTC constraints.
-    this.rtcOfferConstraints
+    rtcOfferConstraints
   );
 
   function onSucceeded(response) {
@@ -15483,6 +15509,7 @@ function sendUpdate(options) {
     self = this,
     extraHeaders = options.extraHeaders || [],
     eventHandlers = options.eventHandlers || {},
+    rtcOfferConstraints = options.rtcOfferConstraints || null,
     sdpOffer = options.sdpOffer || false,
     mangle = options.mangle || null;
 
@@ -15535,7 +15562,7 @@ function sendUpdate(options) {
         onFailed();
       },
       // RTC constraints.
-      this.rtcOfferConstraints
+      rtcOfferConstraints
     );
   }
 
@@ -21704,6 +21731,7 @@ var attachMediaStream = null;
 var browserVersion = Number(browser.version) || 0;
 var isDesktop = !!(! browser.mobile || ! browser.tablet);
 var hasWebRTC = false;
+var _navigator = global.navigator || {};  // Don't fail in Node.
 
 
 function Adapter(options) {
@@ -21715,10 +21743,10 @@ function Adapter(options) {
 		(isDesktop && browser.opera && browserVersion >= 27) ||
 		(browser.android && browser.opera && browserVersion >= 24) ||
 		(browser.android && browser.webkit && ! browser.chrome && browserVersion >= 37) ||
-		(navigator.webkitGetUserMedia && global.webkitRTCPeerConnection)
+		(_navigator.webkitGetUserMedia && global.webkitRTCPeerConnection)
 	) {
 		hasWebRTC = true;
-		getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
+		getUserMedia = _navigator.webkitGetUserMedia.bind(_navigator);
 		RTCPeerConnection = global.webkitRTCPeerConnection;
 		RTCSessionDescription = global.RTCSessionDescription;
 		RTCIceCandidate = global.RTCIceCandidate;
@@ -21733,10 +21761,10 @@ function Adapter(options) {
 	else if (
 		(isDesktop && browser.firefox && browserVersion >= 22) ||
 		(browser.android && browser.firefox && browserVersion >= 33) ||
-		(navigator.mozGetUserMedia && global.mozRTCPeerConnection)
+		(_navigator.mozGetUserMedia && global.mozRTCPeerConnection)
 	) {
 		hasWebRTC = true;
-		getUserMedia = navigator.mozGetUserMedia.bind(navigator);
+		getUserMedia = _navigator.mozGetUserMedia.bind(_navigator);
 		RTCPeerConnection = global.mozRTCPeerConnection;
 		RTCSessionDescription = global.mozRTCSessionDescription;
 		RTCIceCandidate = global.mozRTCIceCandidate;
@@ -21767,9 +21795,9 @@ function Adapter(options) {
 	}
 
 	// Best effort (may be adater.js is loaded).
-	else if (navigator.getUserMedia && global.RTCPeerConnection) {
+	else if (_navigator.getUserMedia && global.RTCPeerConnection) {
 		hasWebRTC = true;
-		getUserMedia = navigator.getUserMedia.bind(navigator);
+		getUserMedia = _navigator.getUserMedia.bind(_navigator);
 		RTCPeerConnection = global.RTCPeerConnection;
 		RTCSessionDescription = global.RTCSessionDescription;
 		RTCIceCandidate = global.RTCIceCandidate;
@@ -23018,7 +23046,7 @@ module.exports = require('../package.json').version;
 },{}],38:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "WebRTC API wrapper to deal with different browsers",
   "author": {
     "name": "Iñaki Baz Castillo",
@@ -23043,8 +23071,7 @@ module.exports={
     "merge": "^1.2.0"
   },
   "devDependencies": {
-    "browserify": "^8.1.0",
-    "fs-extra": "^0.14.0",
+    "browserify": "^8.1.1",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-expect-file": "0.0.7",
     "gulp-filelog": "^0.4.1",
@@ -23057,14 +23084,14 @@ module.exports={
   },
   "readme": "# rtcninja.js\n\nWebRTC API wrapper to deal with different browsers.\n\n\n## Installation\n\n* With **npm**:\n\n```bash\n$ npm install rtcninja\n```\n\n* With **bower**:\n\n```bash\n$ bower install rtcninja\n```\n\n## Usage in Node\n\n```javascript\nvar rtcninja = require('rtcninja');\n```\n\n\n## Browserified library\n\nTake a browserified version of the library from the `dist/` folder:\n\n* `dist/rtcninja-X.Y.Z.js`: The uncompressed version.\n* `dist/rtcninja-X.Y.Z.min.js`: The compressed production-ready version.\n* `dist/rtcninja.js`: A copy of the uncompressed version.\n* `dist/rtcninja.min.js`: A copy of the compressed version.\n\nThey expose the global `window.rtcninja` module.\n\n```html\n<script src='rtcninja-X.Y.Z.js'></script>\n```\n\n\n## Usage Example\n\n```javascript\n// Must first call it.\nrtcninja();\n\n// Then check.\nif (rtcninja.hasWebRTC()) {\n    // Do something.\n}\nelse {\n    // Do something.\n}\n```\n\n\n## Documentation\n\nYou can read the full [API documentation](docs/index.md) in the docs folder.\n\n\n## Debugging\n\nThe library includes the Node [debug](https://github.com/visionmedia/debug) module. In order to enable debugging:\n\nIn Node set the `DEBUG=rtcninja*` environment variable before running the application, or set it at the top of the script:\n\n```javascript\nprocess.env.DEBUG = 'rtcninja*';\n```\n\nIn the browser run `rtcninja.debug.enable('rtcninja*');` and reload the page. Note that the debugging settings are stored into the browser LocalStorage. To disable it run `rtcninja.debug.disable('rtcninja*');`.\n\n\n## Author\n\nIñaki Baz Castillo at [eFace2Face](http://eface2face.com).\n\n\n## License\n\nISC.\n",
   "readmeFilename": "README.md",
-  "gitHead": "74b2c6085d035291340ac3655797eca1d6f613a8",
+  "gitHead": "1ffa5f09184e3575ad5313784fe615c8f293da3b",
   "bugs": {
     "url": "https://github.com/ibc/rtcninja.js/issues"
   },
-  "_id": "rtcninja@0.2.8",
+  "_id": "rtcninja@0.2.9",
   "scripts": {},
-  "_shasum": "7025b1f31b3a17222b1cb225a41116b03345faf1",
-  "_from": "rtcninja@>=0.2.8 <0.3.0"
+  "_shasum": "9c71e12e12c9ac8f5ba87a6f23d5688b1ac2f328",
+  "_from": "rtcninja@>=0.2.9 <0.3.0"
 }
 
 },{}],39:[function(require,module,exports){
@@ -23579,7 +23606,7 @@ module.exports={
     "email": "brian@worlize.com",
     "url": "https://www.worlize.com/"
   },
-  "version": "1.0.15",
+  "version": "1.0.17",
   "repository": {
     "type": "git",
     "url": "https://github.com/theturtle32/WebSocket-Node.git"
@@ -23594,6 +23621,7 @@ module.exports={
     "typedarray-to-buffer": "~3.0.0"
   },
   "devDependencies": {
+    "buffer-equal": "0.0.1",
     "faucet": "0.0.1",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-jshint": "^1.9.0",
@@ -23613,13 +23641,13 @@ module.exports={
     "lib": "./lib"
   },
   "browser": "lib/browser.js",
-  "gitHead": "7cd99112b319c9c52069a13c1c80a3b67167d513",
+  "gitHead": "cda940b883aa884906ac13158fe514229a67f426",
   "bugs": {
     "url": "https://github.com/theturtle32/WebSocket-Node/issues"
   },
-  "_id": "websocket@1.0.15",
-  "_shasum": "cf9f0f9ce08bf20a7f2acac3980ee84b4abb58e1",
-  "_from": "websocket@>=1.0.15 <2.0.0",
+  "_id": "websocket@1.0.17",
+  "_shasum": "8a572afc6ec120eb41473ca517d07d932f7b6a1c",
+  "_from": "websocket@>=1.0.17 <2.0.0",
   "_npmVersion": "1.4.28",
   "_npmUser": {
     "name": "theturtle32",
@@ -23632,10 +23660,10 @@ module.exports={
     }
   ],
   "dist": {
-    "shasum": "cf9f0f9ce08bf20a7f2acac3980ee84b4abb58e1",
-    "tarball": "http://registry.npmjs.org/websocket/-/websocket-1.0.15.tgz"
+    "shasum": "8a572afc6ec120eb41473ca517d07d932f7b6a1c",
+    "tarball": "http://registry.npmjs.org/websocket/-/websocket-1.0.17.tgz"
   },
-  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.15.tgz"
+  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.17.tgz"
 }
 
 },{}],46:[function(require,module,exports){
@@ -23643,7 +23671,7 @@ module.exports={
   "name": "jssip",
   "title": "JsSIP",
   "description": "the Javascript SIP library",
-  "version": "0.6.2",
+  "version": "0.6.4",
   "homepage": "http://jssip.net",
   "author": "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
   "contributors": [
@@ -23669,13 +23697,12 @@ module.exports={
   },
   "dependencies": {
     "debug": "^2.1.1",
-    "rtcninja": "^0.2.8",
+    "rtcninja": "^0.2.9",
     "sdp-transform": "~1.1.0",
-    "websocket": "^1.0.15"
+    "websocket": "^1.0.17"
   },
   "devDependencies": {
     "browserify": "^8.1.1",
-    "fs-extra": "^0.14.0",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-expect-file": "0.0.7",
     "gulp-filelog": "^0.4.1",
@@ -23683,7 +23710,7 @@ module.exports={
     "gulp-jshint": "^1.9.0",
     "gulp-nodeunit-runner": "^0.2.2",
     "gulp-rename": "^1.2.0",
-    "gulp-uglify": "^1.0.2",
+    "gulp-uglify": "^1.1.0",
     "gulp-util": "^3.0.2",
     "jshint-stylish": "^1.0.0",
     "pegjs": "0.7.0",
