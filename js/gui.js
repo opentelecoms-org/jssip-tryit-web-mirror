@@ -685,7 +685,12 @@ $(document).ready(function(){
       _Session.connection.removeStream(localStream);
       JsSIP.rtcninja.closeMediaStream(localStream);
       _Session.connection.addStream(stream);
-      _Session.renegotiate({useUpdate: true});
+
+      _Session.renegotiate({
+        useUpdate: true,
+        rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true }
+      });
+
       selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
       localStream = stream;
     }
