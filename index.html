@@ -26,7 +26,7 @@
   <!-- If CustomJsSIP is set in js/custom.js file then load JsSIP from the URL in CustomJsSIP variable. -->
   <script>
     if (window.CustomJsSIP) {
-      console.info("*** CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
+      console.log("Tryit: CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
       document.write('<script src="' + CustomJsSIP + '"><\/script>');
     } else {
       document.write('<script src="js/jssip.js"><\/script>');

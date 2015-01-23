@@ -22299,7 +22299,7 @@ Connection.prototype.reset = function() {
 
 	var pc = this.pc;
 
-	// Remove events in old PC.
+	// Remove events in the old PC.
 	pc.onnegotiationneeded = null;
 	pc.onicecandidate = null;
 	pc.onaddstream = null;
@@ -23111,7 +23111,7 @@ module.exports = require('../package.json').version;
 },{}],38:[function(require,module,exports){
 module.exports={
   "name": "rtcninja",
-  "version": "0.3.1-pre",
+  "version": "0.3.1",
   "description": "WebRTC API wrapper to deal with different browsers",
   "author": {
     "name": "Iñaki Baz Castillo",
@@ -23150,14 +23150,14 @@ module.exports={
   },
   "readme": "# rtcninja.js\n\nWebRTC API wrapper to deal with different browsers.\n\n\n## Installation\n\n* With **npm**:\n\n```bash\n$ npm install rtcninja\n```\n\n* With **bower**:\n\n```bash\n$ bower install rtcninja\n```\n\n## Usage in Node\n\n```javascript\nvar rtcninja = require('rtcninja');\n```\n\n\n## Browserified library\n\nTake a browserified version of the library from the `dist/` folder:\n\n* `dist/rtcninja-X.Y.Z.js`: The uncompressed version.\n* `dist/rtcninja-X.Y.Z.min.js`: The compressed production-ready version.\n* `dist/rtcninja.js`: A copy of the uncompressed version.\n* `dist/rtcninja.min.js`: A copy of the compressed version.\n\nThey expose the global `window.rtcninja` module.\n\n```html\n<script src='rtcninja-X.Y.Z.js'></script>\n```\n\n\n## Usage Example\n\n```javascript\n// Must first call it.\nrtcninja();\n\n// Then check.\nif (rtcninja.hasWebRTC()) {\n    // Do something.\n}\nelse {\n    // Do something.\n}\n```\n\n\n## Documentation\n\nYou can read the full [API documentation](docs/index.md) in the docs folder.\n\n\n## Debugging\n\nThe library includes the Node [debug](https://github.com/visionmedia/debug) module. In order to enable debugging:\n\nIn Node set the `DEBUG=rtcninja*` environment variable before running the application, or set it at the top of the script:\n\n```javascript\nprocess.env.DEBUG = 'rtcninja*';\n```\n\nIn the browser run `rtcninja.debug.enable('rtcninja*');` and reload the page. Note that the debugging settings are stored into the browser LocalStorage. To disable it run `rtcninja.debug.disable('rtcninja*');`.\n\n\n## Author\n\nIñaki Baz Castillo at [eFace2Face](http://eface2face.com).\n\n\n## License\n\nISC.\n",
   "readmeFilename": "README.md",
-  "gitHead": "6834f18b4dc79f8599da8b1790abd71379966812",
+  "gitHead": "aa6a691825d87da67beb38f2c0825cc26d2ec8d3",
   "bugs": {
     "url": "https://github.com/eface2face/rtcninja.js/issues"
   },
-  "_id": "rtcninja@0.3.1-pre",
+  "_id": "rtcninja@0.3.1",
   "scripts": {},
-  "_shasum": "069bd28489d9e68e53e23f36c6b44296d4342f09",
-  "_from": "../rtcninja.js"
+  "_shasum": "cc1a6d79bee2987e72795264ee59889fe8415d48",
+  "_from": "rtcninja@>=0.3.1 <0.4.0"
 }
 
 },{}],39:[function(require,module,exports){
@@ -23764,7 +23764,7 @@ module.exports={
   },
   "dependencies": {
     "debug": "^2.1.1",
-    "rtcninja": "/Users/ibc/src/rtcninja.js",
+    "rtcninja": "^0.3.1",
     "sdp-transform": "~1.1.0",
     "websocket": "^1.0.17"
   },
