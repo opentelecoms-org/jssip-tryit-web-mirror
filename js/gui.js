@@ -1,8 +1,15 @@
+// If set to true, calling hold/unhold/renegotiate produces a PeerConnection reset
+// (via session.connection.reset()), and also when a reINVITE or UPDATE with SDP
+// is received.
+var TRYIT_RESET_PEERCONNECTION = true;
+
+
 $(document).ready(function(){
 
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
   var localStream, remoteStream;
+  var browser = JsSIP.rtcninja.browser;
 
   window.GUI = {
 
@@ -102,6 +109,7 @@ $(document).ready(function(){
       });
 
       call.on('addstream', function(e) {
+        console.log('Tryit: addstream()');
         remoteStream = e.stream;
         remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, remoteStream);
       });
@@ -127,27 +135,27 @@ $(document).ready(function(){
       });
 
       // NewDTMF
-     call.on('newDTMF',function(e) {
-       if (e.originator === 'remote') {
-         sound_file = e.dtmf.tone;
-         soundPlayer.setAttribute("src", "sounds/dialpad/" + sound_file + ".ogg");
-         soundPlayer.play();
-       }
-     });
+      call.on('newDTMF',function(e) {
+        if (e.originator === 'remote') {
+          sound_file = e.dtmf.tone;
+          soundPlayer.setAttribute("src", "sounds/dialpad/" + sound_file + ".ogg");
+          soundPlayer.play();
+        }
+      });
 
-     call.on('hold',function(e) {
-         soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
-         soundPlayer.play();
+      call.on('hold',function(e) {
+        soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+        soundPlayer.play();
 
-         GUI.setCallSessionStatus(session, 'hold', e.originator);
-     });
+        GUI.setCallSessionStatus(session, 'hold', e.originator);
+      });
 
-     call.on('unhold',function(e) {
-         soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
-         soundPlayer.play();
+      call.on('unhold',function(e) {
+        soundPlayer.setAttribute("src", "sounds/dialpad/pound.ogg");
+        soundPlayer.play();
 
-         GUI.setCallSessionStatus(session, 'unhold', e.originator);
-     });
+        GUI.setCallSessionStatus(session, 'unhold', e.originator);
+      });
 
       // Ended
       call.on('ended', function(e) {
@@ -160,6 +168,28 @@ $(document).ready(function(){
 
         _Session = null;
         JsSIP.rtcninja.closeMediaStream(localStream);
+      });
+
+      // received UPDATE
+      call.on('update', function(e) {
+        var request = e.request;
+
+        if (request.body && TRYIT_RESET_PEERCONNECTION) {
+          console.warn('Tryit: UPDATE received, resetting PeerConnection');
+          call.connection.reset();
+          call.connection.addStream(localStream);
+        }
+      });
+
+      // received reINVITE
+      call.on('reinvite', function(e) {
+        var request = e.request;
+
+        if (request.body && TRYIT_RESET_PEERCONNECTION) {
+          console.warn('Tryit: reINVITE received, resetting PeerConnection');
+          call.connection.reset();
+          call.connection.addStream(localStream);
+        }
       });
     },
 
@@ -452,6 +482,11 @@ $(document).ready(function(){
           status_text.text(description || "answered");
 
           button_hold.click(function(){
+            if (TRYIT_RESET_PEERCONNECTION) {
+              console.warn('Tryit: resetting PeerConnection before hold');
+              session.call.connection.reset();
+              session.call.connection.addStream(localStream);
+            }
             session.call.hold();
           });
 
@@ -485,6 +520,11 @@ $(document).ready(function(){
             call.removeClass();
             call.addClass("call on-hold");
             button_resume.click(function(){
+              if (TRYIT_RESET_PEERCONNECTION) {
+                console.warn('Tryit: resetting PeerConnection before unhold');
+                session.call.connection.reset();
+                session.call.connection.addStream(localStream);
+              }
               session.call.unhold();
             });
           } else {
@@ -682,17 +722,25 @@ $(document).ready(function(){
 
       var oldStream = localStream;
 
-      _Session.connection.removeStream(localStream);
+      if (! TRYIT_RESET_PEERCONNECTION) {
+        _Session.connection.removeStream(localStream);
+        _Session.connection.addStream(stream);
+      }
+      else {
+        console.warn('Tryit: resetting PeerConnection before renegotiating the session');
+        _Session.connection.reset();
+        _Session.connection.addStream(stream);
+      }
+
       JsSIP.rtcninja.closeMediaStream(localStream);
-      _Session.connection.addStream(stream);
 
       _Session.renegotiate({
         useUpdate: true,
         rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true }
       });
 
-      selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
       localStream = stream;
+      selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
     }
   });
 
