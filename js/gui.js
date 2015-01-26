@@ -569,7 +569,8 @@ $(document).ready(function(){
 
           button_dial.click(function() {
             session.call.answer({
-              pcConfig: peerconnection_config
+              pcConfig: peerconnection_config,
+              //mediaConstraints: {audio: true, video: true}
             });
           });
 
