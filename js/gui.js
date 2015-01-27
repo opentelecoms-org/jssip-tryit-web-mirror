@@ -1,7 +1,7 @@
 // If set to true, calling hold/unhold/renegotiate produces a PeerConnection reset
 // (via session.connection.reset()), and also when a reINVITE or UPDATE with SDP
 // is received.
-var TRYIT_RESET_PEERCONNECTION = true;
+var TRYIT_RESET_PEERCONNECTION = false;
 
 
 $(document).ready(function(){
@@ -570,7 +570,9 @@ $(document).ready(function(){
           button_dial.click(function() {
             session.call.answer({
               pcConfig: peerconnection_config,
-              //mediaConstraints: {audio: true, video: true}
+              // TMP:
+              mediaConstraints: {audio: true, video: true},
+              extraHeaders: [ 'X-Can-Renegotiate: true' ]
             });
           });
 
