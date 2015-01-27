@@ -13727,7 +13727,7 @@ RTCSession.prototype.connect = function(target, options) {
         this.sessionTimers.defaultExpires = options.sessionTimersExpires;
       }
       else {
-        this.sessionTimers.defaultExpires = JsSIP_C.MIN_SESSION_EXPIRES;
+        this.sessionTimers.defaultExpires = JsSIP_C.SESSION_EXPIRES;
       }
     }
   }
@@ -13921,7 +13921,7 @@ RTCSession.prototype.answer = function(options) {
         this.sessionTimers.defaultExpires = options.sessionTimersExpires;
       }
       else {
-        this.sessionTimers.defaultExpires = JsSIP_C.MIN_SESSION_EXPIRES;
+        this.sessionTimers.defaultExpires = JsSIP_C.SESSION_EXPIRES;
       }
     }
   }
