@@ -122,7 +122,6 @@ $(document).ready(function(){
 
       // Failed
       call.on('failed',function(e) {
-        console.warn('****** failed: ', e.cause);  // TODO: remove
         var
           cause = e.cause,
           response = e.response;
