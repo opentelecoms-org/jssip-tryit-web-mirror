@@ -116,6 +116,7 @@ $(document).ready(function(){
 
       // Failed
       call.on('failed',function(e) {
+        console.warn('****** failed: ', e.cause);  // TODO: remove
         var
           cause = e.cause,
           response = e.response;
@@ -684,7 +685,10 @@ $(document).ready(function(){
         ua.call(target, {
             pcConfig: peerconnection_config,
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
-            rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true },
+            rtcOfferConstraints: {
+              offerToReceiveAudio: 1,
+              offerToReceiveVideo: 1
+            },
             sessionTimersExpires: 8
         });
     },
