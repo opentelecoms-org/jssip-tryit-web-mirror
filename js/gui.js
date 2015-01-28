@@ -1,15 +1,11 @@
-// If set to true, calling hold/unhold/renegotiate produces a PeerConnection reset
-// (via session.connection.reset()), and also when a reINVITE or UPDATE with SDP
-// is received.
-var TRYIT_RESET_PEERCONNECTION = false;
-
-
 $(document).ready(function(){
 
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
   var localStream, remoteStream;
   var browser = JsSIP.rtcninja.browser;
+  // Flags indicating whether local peer can renegotiate RTC (or PC reset is required).
+  var localCanRenegotiateRTC = JsSIP.rtcninja.canRenegotiate;
 
   window.GUI = {
 
@@ -62,6 +58,12 @@ $(document).ready(function(){
 
       if (call.direction === 'incoming') {
         status = "incoming";
+        if (request.getHeader('X-Can-Renegotiate') === 'false') {
+          call.data.remoteCanRenegotiateRTC = false;
+        }
+        else {
+          call.data.remoteCanRenegotiateRTC = true;
+        }
       } else {
         status = "trying";
       }
@@ -100,10 +102,14 @@ $(document).ready(function(){
           selfView.volume = 0;
         }
 
-        // NO: Use on('addstream') as below.
-        // if ( call.connection.getRemoteStreams().length > 0) {
-        //   remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, call.connection.getRemoteStreams()[0]);
-        // }
+        if (e.originator === 'remote') {
+          if (e.response.getHeader('X-Can-Renegotiate') === 'false') {
+            call.data.remoteCanRenegotiateRTC = false;
+          }
+          else {
+            call.data.remoteCanRenegotiateRTC = true;
+          }
+        }
 
         GUI.setCallSessionStatus(session, 'answered');
       });
@@ -175,7 +181,9 @@ $(document).ready(function(){
       call.on('update', function(e) {
         var request = e.request;
 
-        if (request.body && TRYIT_RESET_PEERCONNECTION) {
+        if (! request.body) { return; }
+
+        if (! localCanRenegotiateRTC || ! call.data.remoteCanRenegotiateRTC) {
           console.warn('Tryit: UPDATE received, resetting PeerConnection');
           call.connection.reset();
           call.connection.addStream(localStream);
@@ -186,7 +194,9 @@ $(document).ready(function(){
       call.on('reinvite', function(e) {
         var request = e.request;
 
-        if (request.body && TRYIT_RESET_PEERCONNECTION) {
+        if (! request.body) { return; }
+
+        if (! localCanRenegotiateRTC || ! call.data.remoteCanRenegotiateRTC) {
           console.warn('Tryit: reINVITE received, resetting PeerConnection');
           call.connection.reset();
           call.connection.addStream(localStream);
@@ -483,7 +493,7 @@ $(document).ready(function(){
           status_text.text(description || "answered");
 
           button_hold.click(function(){
-            if (TRYIT_RESET_PEERCONNECTION) {
+            if (! localCanRenegotiateRTC || ! session.call.data.remoteCanRenegotiateRTC) {
               console.warn('Tryit: resetting PeerConnection before hold');
               session.call.connection.reset();
               session.call.connection.addStream(localStream);
@@ -521,7 +531,7 @@ $(document).ready(function(){
             call.removeClass();
             call.addClass("call on-hold");
             button_resume.click(function(){
-              if (TRYIT_RESET_PEERCONNECTION) {
+              if (! localCanRenegotiateRTC || ! session.call.data.remoteCanRenegotiateRTC) {
                 console.warn('Tryit: resetting PeerConnection before unhold');
                 session.call.connection.reset();
                 session.call.connection.addStream(localStream);
@@ -573,7 +583,9 @@ $(document).ready(function(){
               pcConfig: peerconnection_config,
               // TMP:
               mediaConstraints: {audio: true, video: true},
-              extraHeaders: [ 'X-Can-Renegotiate: true' ]
+              extraHeaders: [
+                'X-Can-Renegotiate: ' + String(localCanRenegotiateRTC)
+              ]
             });
           });
 
@@ -685,6 +697,9 @@ $(document).ready(function(){
         ua.call(target, {
             pcConfig: peerconnection_config,
             mediaConstraints: { audio: true, video:$('#enableVideo').is(':checked') },
+            extraHeaders: [
+              'X-Can-Renegotiate: ' + String(localCanRenegotiateRTC)
+            ],
             rtcOfferConstraints: {
               offerToReceiveAudio: 1,
               offerToReceiveVideo: 1
@@ -729,7 +744,7 @@ $(document).ready(function(){
 
       var oldStream = localStream;
 
-      if (! TRYIT_RESET_PEERCONNECTION) {
+      if (localCanRenegotiateRTC && _Session.data.remoteCanRenegotiateRTC) {
         _Session.connection.removeStream(localStream);
         _Session.connection.addStream(stream);
       }
