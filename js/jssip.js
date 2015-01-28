@@ -1,5 +1,5 @@
 /*
- * JsSIP.js 0.6.12
+ * JsSIP.js 0.6.13-pre
  * the Javascript SIP library
  * Copyright 2012-2015 José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)
  * Homepage: http://jssip.net
@@ -15077,16 +15077,13 @@ function receiveReinvite(request) {
     createSdp(
       // onSuccess
       function(sdp) {
-        if (self.remoteHold === true && hold === false) {
-          self.remoteHold = false;
-          onunhold.call(self, 'remote');
-        } else if (self.remoteHold === false && hold === true) {
-          self.remoteHold = true;
-          onhold.call(self, 'remote');
-        }
-
         var extraHeaders = ['Contact: ' + self.contact];
         handleSessionTimersInIncomingRequest.call(self, request, extraHeaders);
+
+        if (self.late_sdp) {
+          sdp = mangleOffer.call(self, sdp);
+        }
+
         request.reply(200, null, extraHeaders, sdp,
           function() {
             self.status = C.STATUS_WAITING_FOR_ACK;
@@ -15104,6 +15101,14 @@ function receiveReinvite(request) {
 
   function createSdp(onSuccess, onFailure) {
     if (! self.late_sdp) {
+      if (self.remoteHold === true && hold === false) {
+        self.remoteHold = false;
+        onunhold.call(self, 'remote');
+      } else if (self.remoteHold === false && hold === true) {
+        self.remoteHold = true;
+        onhold.call(self, 'remote');
+      }
+
       createLocalDescription.call(self, 'answer', onSuccess, onFailure, self.rtcAnswerConstraints);
     } else {
       createLocalDescription.call(self, 'offer', onSuccess, onFailure, self.rtcOfferConstraints);
@@ -15675,7 +15680,6 @@ function mangleOffer(sdp) {
   var idx, length, m;
 
   if (! this.localHold && ! this.remoteHold) {
-    debugerror('mangleOffer() | nobody on hold, not mangling');
     return sdp;
   }
 
@@ -15683,7 +15687,7 @@ function mangleOffer(sdp) {
 
   // Local hold.
   if (this.localHold && ! this.remoteHold) {
-    debugerror('mangleOffer() | me on hold, mangling offer');
+    debug('mangleOffer() | me on hold, mangling offer');
     length = sdp.media.length;
     for (idx=0; idx<length; idx++) {
       m = sdp.media[idx];
@@ -15698,7 +15702,7 @@ function mangleOffer(sdp) {
   }
   // Local and remote hold.
   else if (this.localHold && this.remoteHold) {
-    debugerror('mangleOffer() | both on hold, mangling offer');
+    debug('mangleOffer() | both on hold, mangling offer');
     length = sdp.media.length;
     for (idx=0; idx<length; idx++) {
       m = sdp.media[idx];
@@ -15707,7 +15711,7 @@ function mangleOffer(sdp) {
   }
   // Remote hold.
   else if (this.remoteHold) {
-    debugerror('mangleOffer() | remote on hold, mangling offer');
+    debug('mangleOffer() | remote on hold, mangling offer');
     length = sdp.media.length;
     for (idx=0; idx<length; idx++) {
       m = sdp.media[idx];
@@ -15726,13 +15730,13 @@ function mangleOffer(sdp) {
 
 function setLocalMediaStatus() {
   if (this.localHold) {
-    debugerror('setLocalMediaStatus() | me on hold, mutting my media');
+    debug('setLocalMediaStatus() | me on hold, mutting my media');
     toogleMuteAudio.call(this, true);
     toogleMuteVideo.call(this, true);
     return;
   }
   else if (this.remoteHold) {
-    debugerror('setLocalMediaStatus() | remote on hold, mutting my media');
+    debug('setLocalMediaStatus() | remote on hold, mutting my media');
     toogleMuteAudio.call(this, true);
     toogleMuteVideo.call(this, true);
     return;
@@ -15840,7 +15844,6 @@ function runSessionTimer() {
 }
 
 function toogleMuteAudio(mute) {
-  debugerror('toogleMuteAudio() mute:', mute);  // TODO: remove
   var streamIdx, trackIdx, tracks,
     localStreams = this.connection.getLocalStreams();
 
@@ -15853,7 +15856,6 @@ function toogleMuteAudio(mute) {
 }
 
 function toogleMuteVideo(mute) {
-  debugerror('toogleMuteVideo() mute:', mute);  // TODO: remove
   var streamIdx, trackIdx, tracks,
     localStreams = this.connection.getLocalStreams();
 
@@ -18583,14 +18585,16 @@ UA.prototype.stop = function() {
 
   // If there are no pending non-INVITE client or server transactions and no
   // sessions, then disconnect now. Otherwise wait for 2 seconds.
-  if (this.nistTransactionsCount === 0 && this.nictTransactionsCount === 0 && num_sessions === 0) {
-    ua.transport.disconnect();
-  }
-  else {
+  // TODO: This fails if sotp() is called once an outgoing is cancelled (no time
+  // to send ACK for 487), so leave 2 seconds until properly re-designed.
+  // if (this.nistTransactionsCount === 0 && this.nictTransactionsCount === 0 && num_sessions === 0) {
+    // ua.transport.disconnect();
+  // }
+  // else {
     setTimeout(function() {
       ua.transport.disconnect();
     }, 2000);
-  }
+  // }
 };
 
 /**
@@ -23846,7 +23850,7 @@ module.exports={
   "name": "jssip",
   "title": "JsSIP",
   "description": "the Javascript SIP library",
-  "version": "0.6.12",
+  "version": "0.6.13-pre",
   "homepage": "http://jssip.net",
   "author": "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
   "contributors": [
