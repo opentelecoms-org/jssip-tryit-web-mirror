@@ -584,7 +584,11 @@ $(document).ready(function(){
               mediaConstraints: {audio: true, video: true},
               extraHeaders: [
                 'X-Can-Renegotiate: ' + String(localCanRenegotiateRTC)
-              ]
+              ],
+              rtcOfferConstraints: {
+                offerToReceiveAudio: 1,
+                offerToReceiveVideo: 1
+              },
             });
           });
 
@@ -702,8 +706,7 @@ $(document).ready(function(){
             rtcOfferConstraints: {
               offerToReceiveAudio: 1,
               offerToReceiveVideo: 1
-            },
-            sessionTimersExpires: 8
+            }
         });
     },
 
