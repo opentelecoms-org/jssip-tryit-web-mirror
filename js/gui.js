@@ -3,7 +3,6 @@ $(document).ready(function(){
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
   var localStream, remoteStream;
-  var browser = JsSIP.rtcninja.browser;
   // Flags indicating whether local peer can renegotiate RTC (or PC reset is required).
   var localCanRenegotiateRTC = JsSIP.rtcninja.canRenegotiate;
 
