@@ -492,12 +492,16 @@ $(document).ready(function(){
           status_text.text(description || "answered");
 
           button_hold.click(function(){
+            if (! session.call.isReadyToReOffer()) {
+              console.warn('Tryit: not ready to reoffer');
+              return;
+            }
             if (! localCanRenegotiateRTC || ! session.call.data.remoteCanRenegotiateRTC) {
               console.warn('Tryit: resetting PeerConnection before hold');
               session.call.connection.reset();
               session.call.connection.addStream(localStream);
             }
-            session.call.hold();
+            session.call.hold({useUpdate: true});
           });
 
           button_dtmf.click(function() {
@@ -530,6 +534,10 @@ $(document).ready(function(){
             call.removeClass();
             call.addClass("call on-hold");
             button_resume.click(function(){
+              if (! session.call.isReadyToReOffer()) {
+                console.warn('Tryit: not ready to reoffer');
+                return;
+              }
               if (! localCanRenegotiateRTC || ! session.call.data.remoteCanRenegotiateRTC) {
                 console.warn('Tryit: resetting PeerConnection before unhold');
                 session.call.connection.reset();
@@ -727,6 +735,11 @@ $(document).ready(function(){
   // Add/remove video during a call.
   $('#enableVideo').change(function() {
     if (! _Session) { return; }
+
+    if (! _Session.isReadyToReOffer()) {
+      console.warn('Tryit: not ready to reoffer');
+      return;
+    }
 
     var mediaConstraints = { audio: true, video: true };
 
