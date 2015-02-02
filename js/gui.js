@@ -501,7 +501,7 @@ $(document).ready(function(){
               session.call.connection.reset();
               session.call.connection.addStream(localStream);
             }
-            session.call.hold({useUpdate: true});
+            session.call.hold({useUpdate: false});
           });
 
           button_dtmf.click(function() {
