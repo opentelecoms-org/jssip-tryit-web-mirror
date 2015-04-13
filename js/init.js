@@ -6,7 +6,7 @@ var phone_chat_button = null;
 var phone_dialpad_button = null;
 var soundPlayer = null;
 var _Session = null;  // The last RTCSession instance.
-var peerconnection_config;
+//var peerconnection_config = peerconnection_config || undefined;
 
 
 $(document).ready(function(){
