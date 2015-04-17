@@ -87,6 +87,13 @@ $(document).ready(function(){
 
       // EVENT CALLBACK DEFINITION
 
+      call.on('connecting', function() {
+        // TMP
+        if (call.connection.getLocalStreams().length > 0) {
+          window.localStream = call.connection.getLocalStreams()[0];
+        }
+      });
+
       // Progress
       call.on('progress',function(e){
         if (e.originator === 'remote') {
@@ -101,6 +108,9 @@ $(document).ready(function(){
           localStream = call.connection.getLocalStreams()[0];
           selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
           selfView.volume = 0;
+
+          // TMP
+          window.localStream = localStream;
         }
 
         if (e.originator === 'remote') {
