@@ -14871,6 +14871,8 @@ function createLocalDescription(type, onSuccess, onFailure, constraints) {
 
   // createAnswer or createOffer succeeded
   function createSucceeded(desc) {
+    debug('createLocalDescription() | create succeeded [desc:%o]', desc);
+
     connection.onicecandidate = function(event, candidate) {
       if (! candidate) {
         connection.onicecandidate = null;
@@ -14884,8 +14886,14 @@ function createLocalDescription(type, onSuccess, onFailure, constraints) {
       // success
       function() {
         if (connection.iceGatheringState === 'complete') {
+          debug('createLocalDescription() | setLocalDescription() succeeded and iceGatheringState == "complete" [pc.localDescription:%o]', connection.localDescription);
           self.rtcReady = true;
-          if (onSuccess) { onSuccess(connection.localDescription.sdp); }
+          if (onSuccess) {
+            var onSuccessCopy = onSuccess;
+            setTimeout(function () {
+              onSuccessCopy(connection.localDescription.sdp);
+            });
+          }
           onSuccess = null;
         }
       },
