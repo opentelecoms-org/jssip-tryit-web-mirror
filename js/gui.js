@@ -754,21 +754,35 @@ $(document).ready(function(){
 
     var mediaConstraints = { audio: true, video: true };
 
-    if (! $(this).is(':checked')) {
-      mediaConstraints.video = false;
+    // Video removal form the current MediaStream.
+    if (! $(this).is(':checked') && localCanRenegotiateRTC()) {
+      var videoTrack = _Session.connection.getLocalStreams()[0].getVideoTracks()[0];
+
+      if (!videoTrack) {
+        return;
+      }
+      _Session.connection.getLocalStreams()[0].removeTrack(videoTrack);
+
+      doRenegotiate();
     }
 
-    JsSIP.rtcninja.getUserMedia(mediaConstraints,
-      useNewLocalStream,
-      function(error) {
-        throw error;
-      }
-    );
+    // New MediaStream.
+    else {
+      var mediaConstraints = {
+        audio: true,
+        video: $(this).is(':checked')
+      };
+
+      JsSIP.rtcninja.getUserMedia(mediaConstraints,
+        useNewLocalStream,
+        function(error) {
+          throw error;
+        }
+      );
+    }
 
     function useNewLocalStream(stream) {
       if (! _Session) { return; }
-
-      var oldStream = localStream;
 
       if (localCanRenegotiateRTC() && _Session.data.remoteCanRenegotiateRTC) {
         _Session.connection.removeStream(localStream);
@@ -782,13 +796,17 @@ $(document).ready(function(){
 
       JsSIP.rtcninja.closeMediaStream(localStream);
 
+      doRenegotiate();
+
+      localStream = stream;
+      selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
+    }
+
+    function doRenegotiate() {
       _Session.renegotiate({
         useUpdate: true,
         rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: true }
       });
-
-      localStream = stream;
-      selfView = JsSIP.rtcninja.attachMediaStream(selfView, stream);
     }
   });
 
