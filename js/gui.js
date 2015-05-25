@@ -754,18 +754,46 @@ $(document).ready(function(){
 
     var mediaConstraints = { audio: true, video: true };
 
-    // Video removal form the current MediaStream.
-    if (! $(this).is(':checked') && localCanRenegotiateRTC()) {
-      var videoTrack = _Session.connection.getLocalStreams()[0].getVideoTracks()[0];
+    // Video addition/removal form the current MediaStream.
+    if (localCanRenegotiateRTC()) {
+      if (!$(this).is(':checked')) {
+        // Remove local video.
+        var videoTrack = _Session.connection.getLocalStreams()[0].getVideoTracks()[0];
 
-      if (!videoTrack) {
-        return;
+        if (!videoTrack) {
+          return;
+        }
+        _Session.connection.getLocalStreams()[0].removeTrack(videoTrack);
+
+        doRenegotiate();
+
+        selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
       }
-      _Session.connection.getLocalStreams()[0].removeTrack(videoTrack);
+      // Add local video.
+      else {
+        var videoTrack = _Session.connection.getLocalStreams()[0].getVideoTracks()[0];
 
-      doRenegotiate();
+        if (videoTrack) {
+          return;
+        }
 
-      selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
+        JsSIP.rtcninja.getUserMedia({video: true, audio: false},
+          addVideoTrack,
+          function(error) {
+            throw error;
+          }
+        );
+
+        function addVideoTrack(stream) {
+          var videoTrack = stream.getVideoTracks()[0];
+
+          _Session.connection.getLocalStreams()[0].addTrack(videoTrack);
+
+          doRenegotiate();
+
+          selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
+        }
+      }
     }
 
     // New MediaStream.
