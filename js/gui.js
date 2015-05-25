@@ -764,6 +764,8 @@ $(document).ready(function(){
       _Session.connection.getLocalStreams()[0].removeTrack(videoTrack);
 
       doRenegotiate();
+
+      selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
     }
 
     // New MediaStream.
