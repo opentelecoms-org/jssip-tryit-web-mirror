@@ -1,5 +1,5 @@
 /*
- * JsSIP v0.6.28
+ * JsSIP v0.6.29
  * the Javascript SIP library
  * Copyright: 2012-2015 José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)
  * Homepage: http://jssip.net
@@ -18667,13 +18667,13 @@ UA.prototype.onTransportConnected = function(transport) {
   this.status = C.STATUS_READY;
   this.error = null;
 
-  this.emit('connected', {
-    transport: transport
-  });
-
   if(this.dynConfiguration.register) {
     this._registrator.register();
   }
+
+  this.emit('connected', {
+    transport: transport
+  });
 };
 
 
@@ -24068,7 +24068,7 @@ module.exports={
   "name": "jssip",
   "title": "JsSIP",
   "description": "the Javascript SIP library",
-  "version": "0.6.28",
+  "version": "0.6.29",
   "homepage": "http://jssip.net",
   "author": "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
   "contributors": [
