@@ -1,5 +1,5 @@
 /*
- * JsSIP v0.6.29
+ * JsSIP v0.6.30
  * the Javascript SIP library
  * Copyright: 2012-2015 José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)
  * Homepage: http://jssip.net
@@ -19619,7 +19619,7 @@ URI.prototype = {
     }
 
     for(header in this.headers) {
-      for(idx in this.headers[header]) {
+      for(idx = 0; idx < this.headers[header].length; idx++) {
         headers.push(header + '=' + this.headers[header][idx]);
       }
     }
@@ -24068,7 +24068,7 @@ module.exports={
   "name": "jssip",
   "title": "JsSIP",
   "description": "the Javascript SIP library",
-  "version": "0.6.29",
+  "version": "0.6.30",
   "homepage": "http://jssip.net",
   "author": "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
   "contributors": [
