@@ -421,7 +421,7 @@ $(document).ready(function(){
           $(this).val("type to chat...");
         }
         // iscomposing stuff.
-        compositionIndicators[uri].blur();
+        compositionIndicators[uri].idle();
       });
 
       chat_input.keydown(function(e) {
@@ -443,7 +443,7 @@ $(document).ready(function(){
         // Ignore Enter when empty input.
         else if (e.which == 13 && $(this).val() == "") {
           // iscomposing stuff.
-          compositionIndicators[uri].blur();
+          compositionIndicators[uri].idle();
           return false;
         }
         // Ignore "windows" and ALT keys, DEL, mayusculas and 0 (que no sé qué es).
@@ -457,7 +457,7 @@ $(document).ready(function(){
               compositionIndicators[uri].composing();
             } else {
               // iscomposing stuff.
-              compositionIndicators[uri].blur();
+              compositionIndicators[uri].idle();
             }
           });
         }

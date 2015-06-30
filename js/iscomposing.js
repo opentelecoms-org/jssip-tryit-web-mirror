@@ -102,7 +102,7 @@ Composer.prototype.sent = function () {
 };
 
 
-Composer.prototype.blur = function () {
+Composer.prototype.idle = function () {
 	setStatus.call(this, IDLE);
 };
 
@@ -384,10 +384,10 @@ CompositionIndicator.prototype.sent = function () {
 /**
  * Tell the library that the chat lost focus.
  */
-CompositionIndicator.prototype.blur = function () {
-	debug('blur()');
+CompositionIndicator.prototype.idle = function () {
+	debug('idle()');
 
-	this._composer.blur();
+	this._composer.idle();
 };
 
 
