@@ -8,6 +8,11 @@ $(document).ready(function(){
     return JsSIP.rtcninja.canRenegotiate;
   };
 
+  // HACK: Container for iscomposing.CompositionIndicator instances.
+  // - key: chat session URI.
+  // - value: CompositionIndicator instance.
+  compositionIndicators = {};
+
   window.GUI = {
 
     phoneCallButtonPressed : function() {
@@ -223,7 +228,8 @@ $(document).ready(function(){
         request = e.request,
         message = e.message,
         uri = message.remote_identity.uri.toString(),
-        session = GUI.getSession(uri);
+        session = GUI.getSession(uri),
+        compositionIndicator;
 
       if (message.direction === 'incoming') {
         display_name = message.remote_identity.display_name || message.remote_identity.uri.user;
@@ -233,6 +239,12 @@ $(document).ready(function(){
         if (!session) {
           session = GUI.createSession(display_name, uri);
           GUI.setCallSessionStatus(session, "inactive");
+        }
+
+        // iscomposing stuff.
+        compositionIndicator = compositionIndicators[uri];
+        if (compositionIndicator.received(text, request.getHeader('Content-Type'))) {
+          return;
         }
 
         $(session).find(".peer > .display-name").text(display_name);
@@ -353,6 +365,36 @@ $(document).ready(function(){
       var call_status = $(session).find(".call");
       var close = $(session).find("> .close");
       var chat_input = $(session).find(".chat > input[type='text']");
+      var compositionIndicator;
+
+      /**
+       * iscomposing stuff.
+       */
+
+      compositionIndicator = iscomposing();
+      compositionIndicators[uri] = compositionIndicator;
+
+      compositionIndicator.on('local:active', function (msg, mimeContentType) {
+        ua.sendMessage(uri, msg, {
+          contentType: mimeContentType
+        });
+      });
+
+      compositionIndicator.on('local:idle', function (msg, mimeContentType) {
+        ua.sendMessage(uri, msg, {
+          contentType: mimeContentType
+        });
+      });
+
+      compositionIndicator.on('remote:active', function (statusContentType) {
+        GUI.phoneIsComposingReceived(uri, true);
+      });
+
+      compositionIndicator.on('remote:idle', function (statusContentType) {
+        GUI.phoneIsComposingReceived(uri, false);
+      });
+
+      // end iscomposing stuff.
 
       $(session).hover(function() {
         if ($(call_status).hasClass("inactive"))
@@ -368,8 +410,8 @@ $(document).ready(function(){
 
       chat_input.focus(function(e) {
         if ($(this).hasClass("inactive")) {
-        $(this).val("");
-        $(this).removeClass("inactive");
+          $(this).val("");
+          $(this).removeClass("inactive");
         }
       });
 
@@ -378,9 +420,13 @@ $(document).ready(function(){
           $(this).addClass("inactive");
           $(this).val("type to chat...");
         }
+        // iscomposing stuff.
+        compositionIndicators[uri].blur();
       });
 
       chat_input.keydown(function(e) {
+        var self = $(this);
+
         // Ignore TAB and ESC.
         if (e.which == 9 || e.which == 27) {
           return false;
@@ -390,24 +436,31 @@ $(document).ready(function(){
           var text = chat_input.val();
           GUI.addChatMessage(session, "me", text);
           chat_input.val("");
-          GUI.jssipMessage(uri, text);
+          ua.sendMessage(uri, text);
+          // iscomposing stuff.
+          compositionIndicators[uri].sent();
         }
         // Ignore Enter when empty input.
         else if (e.which == 13 && $(this).val() == "") {
+          // iscomposing stuff.
+          compositionIndicators[uri].blur();
           return false;
         }
-        // NOTE is-composing stuff.
         // Ignore "windows" and ALT keys, DEL, mayusculas and 0 (que no sé qué es).
-        else if (e.which == 18 || e.which == 91 || e.which == 46 || e.which == 16 || e.which == 0)
-          return false;
-        // If this is the first char in the input and the chatting session
-        // is active, then send a iscomposing notification.
-        else if (e.which != 8 && $(this).val() == "") {
-          GUI.jssipIsComposing(uri, true);
+        // else if (e.which == 18 || e.which == 91 || e.which == 46 || e.which == 16 || e.which == 0) {
+          // return false;
+        // }
+        else {
+          setTimeout(function () {
+            if (self.val() !== "") {
+              // iscomposing stuff.
+              compositionIndicators[uri].composing();
+            } else {
+              // iscomposing stuff.
+              compositionIndicators[uri].blur();
+            }
+          });
         }
-        // If this is a DELETE key and the input has been totally clean, then send "idle" isomposing.
-        else if (e.which == 8 && $(this).val().match("^.$"))
-          GUI.jssipIsComposing(uri, false);
       });
 
       $(session).fadeIn(100);
@@ -643,7 +696,8 @@ $(document).ready(function(){
         });
         // Enviar "iscomposing idle" si estábamos escribiendo.
         if (! chat_input.hasClass("inactive") && chat_input.val() != "")
-          GUI.jssipIsComposing(uri, false);
+          // iscomposing stuff.
+          compositionIndicators[uri].close();
       }
       else {
         // Como existe una sesión de chat, no cerramos el div de sesión,
@@ -727,17 +781,6 @@ $(document).ready(function(){
               offerToReceiveVideo: 1
             }
         });
-    },
-
-
-    jssipMessage : function(uri, text) {
-      ua.sendMessage(uri,text);
-    },
-
-
-    jssipIsComposing : function(uri, active) {
-      //JsSIP.API.is_composing(uri, active);
-      //console.info('is compossing..')
     }
 
   };
