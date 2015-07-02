@@ -28,13 +28,12 @@
   <script>
     if (window.CustomJsSIP) {
       console.log("Tryit: CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
-      document.write('<script src="' + CustomJsSIP + '"><\/script>');
+      document.write('<script sync src="' + CustomJsSIP + '"><\/script>');
     } else {
-      document.write('<script src="js/jssip.js"><\/script>');
+      document.write('<script sync src="js/jssip.js"><\/script>');
     }
+    setTimeout(function () { JsSIP.debug.enable("*"); }, 5000);
   </script>
-
-  <script>JsSIP.debug.enable("*");</script>
 
   <!-- Try to load rtcninja-temasys.js -->
   <script src="js/rtcninja-temasys.min.js" type="text/javascript"></script>
