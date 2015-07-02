@@ -371,7 +371,7 @@ $(document).ready(function(){
        * iscomposing stuff.
        */
 
-      compositionIndicator = iscomposing();
+      compositionIndicator = iscomposing({format: 'json'});
       compositionIndicators[uri] = compositionIndicator;
 
       compositionIndicator.on('local:active', function (msg, mimeContentType) {
