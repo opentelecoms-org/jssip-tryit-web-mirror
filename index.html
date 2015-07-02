@@ -24,15 +24,9 @@
 
   <!-- Try to load js/custom.js file -->
   <script src="js/custom.js" type="text/javascript"></script>
-  <!-- If CustomJsSIP is set in js/custom.js file then load JsSIP from the URL in CustomJsSIP variable. -->
+  <script src="js/jssip.js" type="text/javascript"></script>
   <script>
-    if (window.CustomJsSIP) {
-      console.log("Tryit: CustomJsSIP found in js/custom.js, loading JsSIP from " + window.CustomJsSIP + "...");
-      document.write('<script sync src="' + CustomJsSIP + '"><\/script>');
-    } else {
-      document.write('<script sync src="js/jssip.js"><\/script>');
-    }
-    setTimeout(function () { JsSIP.debug.enable("*"); }, 5000);
+    //setTimeout(function () { JsSIP.debug.enable("*"); }, 5000);
   </script>
 
   <!-- Try to load rtcninja-temasys.js -->
