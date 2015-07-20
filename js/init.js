@@ -420,7 +420,7 @@ $(document).ready(function(){
     ua.on('newRTCSession', function(e) {
       // Set a global '_Session' variable with the session for testing.
       _Session = e.session;
-      GUI.new_session(e)
+      GUI.new_call(e);
     });
 
     ua.on('newMessage', function(e) {
