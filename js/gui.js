@@ -452,7 +452,7 @@ $(document).ready(function(){
     },
 
     // iscomposing stuff.
-    chatInputChange(uri, text, enter) {
+    chatInputBlur: function (uri, text, enter) {
       console.log('Tryit: chatInputChange');
 
       var session, compositionIndicator;
@@ -476,7 +476,7 @@ $(document).ready(function(){
     },
 
     // iscomposing stuff.
-    chatInputBlur(uri) {
+    chatInputBlur: function (uri) {
       console.log('Tryit: chatInputBlur');
 
       var session = GUI.getSession(uri);

@@ -13,6 +13,12 @@
 
 
 <body id="body" class="bg01">
+  <!-- Enable debug module -->
+  <!-- Set debug -->
+  <script>
+    localStorage.setItem("debug", "*");
+  </script>
+
   <!-- React.js Sessions rendering -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/react-with-addons.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/JSXTransformer.js"></script>
@@ -30,9 +36,6 @@
   <!-- Try to load js/custom.js file -->
   <script src="js/custom.js" type="text/javascript"></script>
   <script src="js/jssip.js" type="text/javascript"></script>
-  <script>
-    JsSIP.debug.enable("*");
-  </script>
 
   <!-- Try to load rtcninja-temasys.js -->
   <script src="js/rtcninja-temasys.min.js" type="text/javascript"></script>
