@@ -729,7 +729,7 @@ div.balloonInvitationTip a:hover {
   background-image: url("../images/icon-resume.png");
 }
 #sessions .session .container > .call > .button.transfer{
-  background-image: url("../images/icon-hold.png");
+  background-image: url("../images/icon-transfer-inactive.png");
 }
 #sessions .session .container > .call > .button.dtmf {
   background-image: url("../images/icon-dtmf.png");

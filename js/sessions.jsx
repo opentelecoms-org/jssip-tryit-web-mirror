@@ -229,9 +229,9 @@ var Session = React.createClass({
     var image;
 
     if (this.state.isTransferring === true) {
-      image = '../images/icon-resume.png';
+      image = '../images/icon-transfer-active.png';
     } else {
-      image = '../images/icon-hold.png';
+      image = '../images/icon-transfer-inactive.png';
     }
 
     return (
