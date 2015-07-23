@@ -3,7 +3,6 @@ $(document).ready(function(){
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
   var localStream, remoteStream;
-  var lastSelectedCall;
   // Flags indicating whether local peer can renegotiate RTC (or PC reset is required).
   var localCanRenegotiateRTC = function() {
     return JsSIP.rtcninja.canRenegotiate;
@@ -145,7 +144,7 @@ $(document).ready(function(){
         phone_dialed_number_screen.val("");
 
         // create session
-        GUI.createSession(uri.user, uri.toAor());
+        GUI.createSession(uri.user, uri.toString());
 
         // render it
         GUI.renderSessions();
@@ -159,7 +158,7 @@ $(document).ready(function(){
         uri = call.remote_identity.uri,
         display_name = call.remote_identity.display_name || uri.user;
 
-      session = GUI.getSession(uri.toAor());
+      session = GUI.getSession(uri.toString());
 
       // We already have a session with this peer
       if (session) {
@@ -172,7 +171,7 @@ $(document).ready(function(){
 
       // new session
       } else {
-        session = GUI.createSession(display_name, uri.toAor());
+        session = GUI.createSession(display_name, uri.toString());
         session.call = call;
       }
 
@@ -242,15 +241,12 @@ $(document).ready(function(){
       // Failed
       call.on('failed',function(e) {
         GUI.playSound("sounds/outgoing-call-rejected.wav");
+        selfView.src = '';
+        remoteView.src = '';
 
-        GUI.removeSession(call.remote_identity.uri.toAor());
+        _Session = null;
 
-        if (GUI.Sessions.length === 0) {
-          _Session = null;
-
-          selfView.src = '';
-          remoteView.src = '';
-        }
+        GUI.removeSession(call.remote_identity.uri.toString());
       });
 
       // NewDTMF
@@ -268,20 +264,13 @@ $(document).ready(function(){
 
       // Ended
       call.on('ended', function(e) {
-        var session, remoteStream;
+        selfView.src = '';
+        remoteView.src = '';
 
-        GUI.removeSession(call.remote_identity.uri.toAor());
+        _Session = null;
+        JsSIP.rtcninja.closeMediaStream(localStream);
 
-        // last call
-        if (GUI.Sessions.length === 0) {
-          _Session = null;
-
-          selfView.src = '';
-          remoteView.src = '';
-
-          JsSIP.rtcninja.closeMediaStream(localStream);
-
-        }
+        GUI.removeSession(call.remote_identity.uri.toString());
       });
 
       // received UPDATE
@@ -309,32 +298,6 @@ $(document).ready(function(){
           call.connection.addStream(localStream);
         }
       });
-
-      // received REFER
-      call.on('refer', function(e) {
-        console.error('accepting the refer');
-        e.accept(function(session, request) {
-          GUI.new_call({
-            originator: 'remote',
-            session: session,
-            request: session.request
-          });
-        }, {
-          mediaStream: localStream
-        });
-      });
-
-      // received INVITE replacing this session
-      call.on('replaces', function(e) {
-        console.error('accepting the replaces');
-        e.accept(function(session, request) {
-          GUI.new_call({
-            originator: 'local',
-            session: session,
-            request: session.request
-          });
-        });
-      });
     },
 
     // JsSIP.UA new_message event listener
@@ -344,10 +307,10 @@ $(document).ready(function(){
         display_name = e.message.remote_identity.display_name || uri.user;
 
       text = e.request.body;
-      session = GUI.getSession(uri.toAor());
+      session = GUI.getSession(uri.toString());
 
       if (!session) {
-        session = GUI.createSession(display_name, uri.toAor());
+        session = GUI.createSession(display_name, uri.toString());
       }
 
       if (e.originator === 'remote') {
@@ -476,23 +439,6 @@ $(document).ready(function(){
       call.unhold();
     },
 
-    buttonTransferClick: function(call) {
-      console.log('Tryit: buttonTransferClick');
-      var refer_to,
-          options = {},
-          target = phone_dialed_number_screen.val();
-
-      if (target) {
-        phone_dialed_number_screen.val("");
-
-        if (lastSelectedCall && lastSelectedCall !== call && !lastSelectedCall.isEnded()) {
-          options.replaces = lastSelectedCall;
-        }
-
-        call.refer(target, options);
-      }
-    },
-
     buttonHangupClick: function(call) {
       console.log('Tryit: buttonHangupClick');
 
@@ -506,7 +452,7 @@ $(document).ready(function(){
     },
 
     // iscomposing stuff.
-    chatInputChange: function(uri, text, enter) {
+    chatInputBlur: function (uri, text, enter) {
       console.log('Tryit: chatInputChange');
 
       var session, compositionIndicator;
@@ -530,7 +476,7 @@ $(document).ready(function(){
     },
 
     // iscomposing stuff.
-    chatInputBlur: function(uri) {
+    chatInputBlur: function (uri) {
       console.log('Tryit: chatInputBlur');
 
       var session = GUI.getSession(uri);
@@ -542,26 +488,6 @@ $(document).ready(function(){
       session.compositionIndicator.idle();
     },
 
-    /* session container focus
-     * associate the call remote stream to the removeView
-     */
-    sessionClick: function(call) {
-      console.log('Tryit: sessionClick()');
-      var remoteStream;
-
-      if (!call || !call.connection) {
-        return;
-      }
-
-      console.log('Setting lastSelectedCall');
-      lastSelectedCall = call;
-
-      remoteStream = call.connection.getRemoteStreams()[0];
-
-      if (remoteStream) {
-        remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, remoteStream);
-      }
-    },
 
     /*
      * Cambia el indicador de "Status". Debe llamarse con uno de estos valores:
