@@ -679,7 +679,7 @@ div.balloonInvitationTip a:hover {
   background: center top url("../images/session-close.png") no-repeat;
   cursor: pointer;
   z-index: 100;
-  display: none;
+  display: block;
 }
 
 #sessions .session .container {
@@ -728,6 +728,9 @@ div.balloonInvitationTip a:hover {
 #sessions .session .container > .call > .button.resume {
   background-image: url("../images/icon-resume.png");
 }
+#sessions .session .container > .call > .button.transfer{
+  background-image: url("../images/icon-hold.png");
+}
 #sessions .session .container > .call > .button.dtmf {
   background-image: url("../images/icon-dtmf.png");
   position: relative;
@@ -764,7 +767,7 @@ div.balloonInvitationTip a:hover {
 
 #sessions .session .container > .call .call-status {
   float: left;
-  width: 144px;
+  width: 110px;
   height: 24px;
   padding-top: 8px;
   text-align: center;
@@ -789,6 +792,11 @@ div.balloonInvitationTip a:hover {
 #sessions .session .container > .call.inactive .button.resume {
   display: none;
 }
+#sessions .session .container > .call.inactive .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
 #sessions .session .container > .call.inactive .button.dtmf {
   cursor: default;
   opacity: 0.4;
@@ -810,6 +818,11 @@ div.balloonInvitationTip a:hover {
 }
 #sessions .session .container > .call.trying .button.resume {
   display: none;
+}
+#sessions .session .container > .call.trying .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
 }
 #sessions .session .container > .call.trying .button.dtmf {
   cursor: default;
@@ -836,6 +849,11 @@ div.balloonInvitationTip a:hover {
 #sessions .session .container > .call.in-progress .button.resume {
   display: none;
 }
+#sessions .session .container > .call.in-progress .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
 #sessions .session .container > .call.in-progress .button.dtmf {
   cursor: default;
   opacity: 0.4;
@@ -858,6 +876,11 @@ div.balloonInvitationTip a:hover {
 #sessions .session .container > .call.incoming .button.resume {
   display: none;
 }
+#sessions .session .container > .call.incoming .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
 #sessions .session .container > .call.incoming .button.dtmf {
   cursor: default;
   opacity: 0.4;
@@ -879,6 +902,8 @@ div.balloonInvitationTip a:hover {
 }
 #sessions .session .container > .call.answered .button.resume {
   display: none;
+}
+#sessions .session .container > .call.answered .button.transfer {
 }
 #sessions .session .container > .call.answered .button.dtmf {
 }
@@ -905,6 +930,11 @@ div.balloonInvitationTip a:hover {
 #sessions .session .container > .call.answered-elsewhere .button.resume {
   display: none;
 }
+#sessions .session .container > .call.answered-elsewhere .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
 #sessions .session .container > .call.answered-elsewhere .button.dtmf {
   cursor: default;
   opacity: 0.4;
@@ -926,6 +956,8 @@ div.balloonInvitationTip a:hover {
   display: none;
 }
 #sessions .session .container > .call.on-hold .button.resume {
+}
+#sessions .session .container > .call.on-hold .button.transfer {
 }
 #sessions .session .container > .call.on-hold .button.dtmf {
 }
@@ -951,6 +983,11 @@ div.balloonInvitationTip a:hover {
 }
 #sessions .session .container > .call.terminated .button.resume {
   display: none;
+}
+#sessions .session .container > .call.terminated .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
 }
 #sessions .session .container > .call.terminated .button.dtmf {
   cursor: default;

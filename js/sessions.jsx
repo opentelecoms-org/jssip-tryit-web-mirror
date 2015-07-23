@@ -25,12 +25,13 @@ var Session = React.createClass({
       callStatusText: '',
       displayName: this.props.data.displayName,
       uri: this.props.data.uri,
+      isTransferring: false,
       showDtmfBox: false
     }
   },
 
   componentDidMount: function() {
-    console.log('Tryit: Session::componentMount()');
+    //console.log('Tryit: Session::componentMount()');
 
     // Call session
     if (this.state.call) {
@@ -43,7 +44,7 @@ var Session = React.createClass({
   },
 
   componentDidUpdate: function(prevProps, prevState) {
-    console.log('Tryit: Session::componentDidUpdate()');
+    //console.log('Tryit: Session::componentDidUpdate()');
 
     var self=this;
 
@@ -63,16 +64,20 @@ var Session = React.createClass({
 
   handleMouseOver: function() {
     if (this.state.callStatus === 'inactive') {
-      $(React.findDOMNode(this)).find(".close").show();
+      this.setState({ showClose: true});
     }
   },
 
   handleMouseOut: function() {
-    $(React.findDOMNode(this)).find(".close").hide();
+    this.setState({ showClose: false});
+  },
+
+  handleClick: function() {
+    GUI.sessionClick(this.state.call);
   },
 
   registerCallSession: function() {
-    console.log('Tryit: Session::registerCallSession()');
+    //console.log('Tryit: Session::registerCallSession()');
 
     var callStatus, remoteIdentity,
       self = this,
@@ -136,7 +141,7 @@ var Session = React.createClass({
   },
 
   setCallStatus: function(status, status_text) {
-    console.log('Tryit: Session::setCallStatus()');
+    //console.log('Tryit: Session::setCallStatus()');
 
     var status_text = status_text || status, local_hold, remote_hold,
         call = this.props.data.call;
@@ -165,12 +170,12 @@ var Session = React.createClass({
 
   // Button handlers
   clickClose: function() {
-    console.log('Tryit: Session::clickClose()');
+    //console.log('Tryit: Session::clickClose()');
     GUI.buttonCloseClick(this.state.uri);
   },
 
   clickDial: function() {
-    console.log('Tryit: Session::clickDial()');
+    //console.log('Tryit: Session::clickDial()');
 
     if (this.state.callStatus === 'incoming') {
       GUI.buttonAnswerClick(this.state.call);
@@ -180,24 +185,61 @@ var Session = React.createClass({
   },
 
   clickHold: function() {
-    console.log('Tryit: Session::clickHold()');
+    //console.log('Tryit: Session::clickHold()');
     GUI.buttonHoldClick(this.state.call);
   },
 
   clickResume: function() {
-    console.log('Tryit: Session::clickResume()');
+    //console.log('Tryit: Session::clickResume()');
     GUI.buttonResumeClick(this.state.call);
   },
 
+  clickTransfer: function() {
+    //console.log('Tryit: Session::clickTransfer()');
+
+    var isTransferring= !this.state.isTransferring;
+
+    this.setState({ isTransferring : isTransferring });
+
+    if (!isTransferring) {
+      GUI.buttonTransferClick(this.state.call);
+    }
+  },
+
   clickHangup: function() {
-    console.log('Tryit: Session::clickHangup()');
+    //console.log('Tryit: Session::clickHangup()');
     GUI.buttonHangupClick(this.state.call);
   },
 
   toggleDtmf: function() {
-    console.log('Tryit: Session::toggleDtmf()');
+    //console.log('Tryit: Session::toggleDtmf()');
 
     this.setState({ showDtmfBox: !this.state.showDtmfBox });
+  },
+
+  renderClose: function() {
+    var display = this.state.showClose?'block':'none';
+
+    return (
+      <div className="close" style={{ display: display }} onClick={this.clickClose}></div>
+    );
+  },
+
+  renderTransferButton: function() {
+    var image;
+
+    if (this.state.isTransferring === true) {
+      image = '../images/icon-resume.png';
+    } else {
+      image = '../images/icon-hold.png';
+    }
+
+    return (
+      <div className="button transfer"
+        style={{ backgroundImage: 'url(' + image + ')' }}
+        onClick={this.clickTransfer}>
+      </div>
+    );
   },
 
   render: function() {
@@ -205,8 +247,9 @@ var Session = React.createClass({
       <div className="session"
         onMouseOver={this.handleMouseOver}
         onMouseOut={this.handleMouseOut}>
-      <div className="close" onClick={this.clickClose}></div>
-        <div className="container">
+        {this.renderClose()}
+        <div className="container"
+          onClick={this.handleClick}>
           <div className="peer">
             <span className="display-name">{this.state.displayName}</span>
             <span>&lt;</span><span className="uri">{this.state.uri}</span><span>&gt;</span>
@@ -217,6 +260,7 @@ var Session = React.createClass({
             <div className="button dtmf"    onClick={this.toggleDtmf}></div>
             <div className="button hold"    onClick={this.clickHold}></div>
             <div className="button resume"  onClick={this.clickResume}></div>
+            {this.renderTransferButton()}
             { this.state.showDtmfBox? <DtmfBox call={this.state.call}/> : null }
             <div className="call-status">{this.state.callStatusText}</div>
           </div>
@@ -276,12 +320,12 @@ var ChatBox = React.createClass({
   },
 
   componentDidMount: function() {
-    console.log('Tryit: ChatBox::componentDidMount()');
+    //console.log('Tryit: ChatBox::componentDidMount()');
     $(React.findDOMNode(this)).find("input").focus();
   },
 
   componentDidUpdate: function(prevProps, prevState) {
-    console.log('Tryit: ChatBox::componentDidUpdate()');
+    //console.log('Tryit: ChatBox::componentDidUpdate()');
 
     var node;
 
@@ -299,18 +343,18 @@ var ChatBox = React.createClass({
   },
 
   handleBlur: function() {
-    console.log('Tryit: ChatBox::handleBlur()');
+    //console.log('Tryit: ChatBox::handleBlur()');
 
     GUI.chatInputBlur(this.props.data.uri);
   },
 
   handleFocus: function() {
-    console.log('Tryit: ChatBox::handleFocus()');
+    //console.log('Tryit: ChatBox::handleFocus()');
   },
 
   // fires everytime the input changes (not when pressing enter)
   handleChange: function(e) {
-    console.log('Tryit: ChatBox::handleChange()');
+    //console.log('Tryit: ChatBox::handleChange()');
 
     var text = e.target.value;
 
@@ -321,7 +365,7 @@ var ChatBox = React.createClass({
 
   // fires everytime a key is pressed (including enter)
   handleKeyDown: function(e) {
-    console.log('Tryit: ChatBox::handleKeyDown()');
+    //console.log('Tryit: ChatBox::handleKeyDown()');
 
     var text = this.state.text;
 
