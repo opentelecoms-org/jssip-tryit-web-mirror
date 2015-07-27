@@ -506,7 +506,7 @@ $(document).ready(function(){
     },
 
     // iscomposing stuff.
-    chatInputBlur: function (uri, text, enter) {
+    chatInputChange: function (uri, text, enter) {
       console.log('Tryit: chatInputChange');
 
       var session, compositionIndicator;
