@@ -303,11 +303,13 @@ $(document).ready(function(){
 
         if (! e.request.body) { return; }
 
+        /*
         if (! localCanRenegotiateRTC() || ! call.data.remoteCanRenegotiateRTC) {
           console.warn('Tryit: reINVITE received, resetting PeerConnection');
           call.connection.reset();
           call.connection.addStream(localStream);
         }
+        */
       });
 
       // received REFER
