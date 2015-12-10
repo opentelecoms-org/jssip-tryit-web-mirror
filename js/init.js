@@ -548,3 +548,124 @@ $(document).ready(function(){
   }
 
 });
+tion callbacks
+    ua.on('registered', function(e){
+      console.info('Registered');
+      GUI.setStatus("registered");
+
+      if (invitedBy) {
+        // This fails in Chrome M38 (it does not propmt for getUseMedia).
+        // phone_dialed_number_screen.val(invitedBy);
+        // phone_call_button.click();
+        // var invited_session = GUI.getSession("sip:" + invitedBy + "@" + tryit_sip_domain);
+        // invitedBy = null;
+
+        // $(invited_session).find(".chat > input[type='text']").val("Hi there, you have invited me to call you :)");
+        // var e = jQuery.Event("keydown");
+        // e.which = 13  // Enter
+        // $(invited_session).find(".chat > input[type='text']").trigger(e);
+        // $(invited_session).find(".chat > input[type='text']").focus();
+
+        // So let's just chat.
+        phone_dialed_number_screen.val(invitedBy);
+        phone_chat_button.click();
+        var invited_session = GUI.getSession("sip:" + invitedBy + "@" + tryit_sip_domain);
+        invitedBy = null;
+
+        $(invited_session).find(".chat > input[type='text']").val("Hi there, wanna talk?");
+        var e = jQuery.Event("keydown");
+        e.which = 13  // Enter
+        $(invited_session).find(".chat > input[type='text']").trigger(e);
+        $(invited_session).find(".chat > input[type='text']").focus();
+      }
+    });
+
+    ua.on('unregistered', function(e){
+      console.info('Deregistered');
+      GUI.setStatus("connected");
+    });
+
+    ua.on('registrationFailed', function(e) {
+      console.info('Registration failure');
+      GUI.setStatus("connected");
+
+      if (! e.response) {
+        // alert("SIP registration error:\n" + e.data.cause);
+      }
+      else {
+        // alert("SIP registration error:\n" + e.data.response.status_code.toString() + " " + e.data.response.reason_phrase)
+      }
+      // if (! window.CustomJsSIPSettings) { window.location.reload(false); }
+    });
+
+    // Start
+    ua.start();
+
+    // Remove login page.
+    $("#login-full-background").fadeOut(1000, function() {
+      $(".balloonTip").css("display", "none");
+      $(this).remove();
+    });
+    $("#login-box").fadeOut(1000, function() {
+      $(this).remove();
+    });
+
+    // Apply custom settings.
+    if (window.Settings) {
+      if (window.Settings.videoDisabledByDefault) {
+        $('#enableVideo').prop('checked', false);
+      }
+    }
+
+
+    // Invitation text and balloon for tryit.jssip.net accounts.
+
+    if (ua.configuration.uri.host === tryit_sip_domain) {
+      $("#call-invitation").show();
+      $("#call-invitation").click(function() { return false; });
+
+      var invitation_link = invitation_link_pre + ua.configuration.uri.user;
+
+      $("#call-invitation > a").balloon({
+        position: "bottom",
+        contents: "<p>copy and give the following link to others (via e-mail, chat, fax):</p><a href='" + invitation_link + "' target='_blank'>" + invitation_link + "</a>",
+        classname: "balloonInvitationTip",
+        css: {
+          border: 'solid 1px #000',
+          padding: '4px 10px',
+          fontSize: '150%',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          lineHeight: '2',
+          backgroundColor: '#FFF',
+          color: '#444'
+        }
+      });
+    }
+
+
+    // Theme selectors.
+
+    theme01.click(function(event) {
+      $("body").removeClass();
+      $("body").addClass("bg01");
+    });
+
+    theme02.click(function(event) {
+      $("body").removeClass();
+      $("body").addClass("bg02");
+    });
+
+    theme03.click(function(event) {
+      $("body").removeClass();
+      $("body").addClass("bg03");
+    });
+
+    theme04.click(function(event) {
+      $("body").removeClass();
+      $("body").addClass("bg04");
+    });
+
+  }
+
+});
