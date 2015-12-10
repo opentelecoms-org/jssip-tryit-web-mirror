@@ -887,4 +887,251 @@ div.balloonInvitationTip a:hover {
   pointer-events:none;
 }
 #sessions .session .container > .call.incoming .call-status {
-  color
+  color: #C49300;
+}
+
+/* call answered */
+#sessions .session .container > .call.answered .button.dial {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered .button.hangup {
+}
+#sessions .session .container > .call.answered .button.hold {
+}
+#sessions .session .container > .call.answered .button.resume {
+  display: none;
+}
+#sessions .session .container > .call.answered .button.transfer {
+}
+#sessions .session .container > .call.answered .button.dtmf {
+}
+#sessions .session .container > .call.answered .call-status {
+  color: #008000;
+}
+
+/* call answered-elsewhere */
+#sessions .session .container > .call.answered-elsewhere .button.dial {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered-elsewhere .button.hangup {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered-elsewhere .button.hold {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered-elsewhere .button.resume {
+  display: none;
+}
+#sessions .session .container > .call.answered-elsewhere .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered-elsewhere .button.dtmf {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.answered-elsewhere .call-status {
+  color: #558000;
+}
+
+/* call on-hold */
+#sessions .session .container > .call.on-hold .button.dial {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.on-hold .button.hangup {
+}
+#sessions .session .container > .call.on-hold .button.hold {
+  display: none;
+}
+#sessions .session .container > .call.on-hold .button.resume {
+}
+#sessions .session .container > .call.on-hold .button.transfer {
+}
+#sessions .session .container > .call.on-hold .button.dtmf {
+}
+#sessions .session .container > .call.on-hold .call-status {
+  color: #008000;
+}
+
+/* call terminated */
+#sessions .session .container > .call.terminated .button.dial {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.terminated .button.hangup {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.terminated .button.hold {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.terminated .button.resume {
+  display: none;
+}
+#sessions .session .container > .call.terminated .button.transfer {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+#sessions .session .container > .call.terminated .button.dtmf {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events:none;
+}
+
+#sessions .session .container > .call.terminated .call-status {
+  color: #FF2200;
+}
+
+
+#sessions .session .chat {
+  position: relative;
+  margin-top: 10px;
+}
+
+#sessions .session .chat .chatting {
+  position: relative;
+  background: #FFF;
+  padding: 5px;
+  font-size: 12px;
+  color: #333;
+  max-height: 80px;
+  overflow: auto;
+  border: 1px solid #CCC;
+}
+#sessions .session .chat .chatting.inactive {
+  display: none;
+}
+
+#sessions .session .chat .iscomposing {
+  position: absolute;
+  background: url("../images/iscomposing2.gif") no-repeat;
+  width: 26px;
+  height: 26px;
+  bottom: 32px;
+  right: 16px;
+  z-index: 20;
+  display: block;
+}
+
+#sessions .session .chat .chatting p {
+  font-size: inherit;
+  margin-bottom: 2px;
+}
+
+#sessions .session .chat .chatting p.me {
+  color: #444;
+}
+
+#sessions .session .chat .chatting p.peer {
+  color: #008F00;
+}
+
+#sessions .session .chat .chatting p.error {
+  color: red;
+}
+
+#sessions .session .chat input[type="text"] {
+  margin: 5px 0 0 0;
+  display: block;
+  line-height: 24px;
+  height: 24px;
+  border: 1px solid #CCC;
+  border-radius: 0 0 5px 0;
+  width: 278px;
+  font-size: 12px;
+  text-indent: 5px;
+  color: #000;
+  font-style: normal;
+}
+#sessions .session .chat input[type="text"].inactive {
+  color: #888;
+  font-style: italic;
+}
+
+
+
+/***************** webcam **************/
+/***************************************/
+#webcam {
+  position: absolute;
+  top: 60px;
+  right: 100px;
+  width: 400px;
+  height: 300px;
+  padding: 6px;
+  background: url("../images/transparent-black-25-bg.png") repeat;
+  border-radius: 10px;
+  border: 2px solid #EEE;
+  display: none;
+}
+
+#webcam #remoteView {
+  width: 400px;
+  height: 300px;
+  background-color: #000;
+}
+
+#webcam #selfView {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  width: 133px;
+  height: 100px;
+  background-color: #111;
+  border-top: 2px solid #CCC;
+  border-right: 2px solid #CCC;
+
+  -moz-transform: scaleX(-1);
+  -ms-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+
+
+/****************** TMP *********************/
+#unregister_all {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+#ws_reconnect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+
+/* TMP: Simular entrantes */
+#test-incoming {
+  position: absolute;
+  top: 20px;
+  left: 800px;
+}
