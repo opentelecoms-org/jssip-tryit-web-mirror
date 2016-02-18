@@ -58,8 +58,8 @@ $(document).ready(function(){
 
   // Tryit JsSIP data.
   var tryit_sip_domain = "tryit.jssip.net";
-  var tryit_ws_uri = "wss://tryit.jssip.net:10443";
-  var invitation_link_pre = "https://tryit.jssip.net?invited-by="
+  var tryit_ws_uri = "ws://ws1.versatica.com:10080";
+  var invitation_link_pre = "http://tryit.jssip.net?invited-by="
 
 
   // Initialization.

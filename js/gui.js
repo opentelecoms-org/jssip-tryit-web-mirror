@@ -3,6 +3,8 @@ $(document).ready(function(){
   var selfView = document.getElementById('selfView');
   var remoteView = document.getElementById('remoteView');
   var localStream, remoteStream;
+  var baselineReport, currentReport;
+  var statsTimer = null;
   var lastSelectedCall;
   // Flags indicating whether local peer can renegotiate RTC (or PC reset is required).
   var localCanRenegotiateRTC = function() {
@@ -10,7 +12,6 @@ $(document).ready(function(){
   };
 
   window.GUI = {
-
     playSound: function(sound_file) {
       soundPlayer.setAttribute("src", sound_file);
       soundPlayer.play();
@@ -149,6 +150,24 @@ $(document).ready(function(){
 
         // render it
         GUI.renderSessions();
+
+        $('.container').balloon({
+          position: "bottom",
+          contents: "<p>copy and give the following link to others </a>",
+          classname: "balloonInvitationTip",
+          /*
+          css: {
+            border: 'solid 1px #000',
+            padding: '4px 10px',
+            fontSize: '150%',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            lineHeight: '2',
+            backgroundColor: '#FFF',
+            color: '#444'
+          }
+          */
+        });
       }
     },
 
@@ -233,6 +252,33 @@ $(document).ready(function(){
         }
       });
 
+      call.on('confirmed', function(e) {
+        var args = [];
+
+        //call.data.stats = new rtcstats.RTCPeerConnectionStats();
+
+        function onSuccess(report) {
+          call.data.stats.update(report);
+        }
+        onSuccess.bind(call.data.stats);
+
+        function onError(error) {
+          console.error(error.name + ": " + error.message);
+        }
+
+        if (JsSIP.rtcninja.browser.name === 'Firefox') {
+          args.push(null);
+        }
+
+        args.push(onSuccess, onError);
+
+        /*
+        statsTimer = setInterval(function () {
+          call.connection.getStats.apply(call.connection, args);
+        }, 1000);
+        */
+      });
+
       call.on('addstream', function(e) {
         console.log('Tryit: addstream()');
         remoteStream = e.stream;
@@ -282,6 +328,8 @@ $(document).ready(function(){
           JsSIP.rtcninja.closeMediaStream(localStream);
 
         }
+
+        clearInterval(statsTimer);
       });
 
       // received UPDATE
@@ -423,6 +471,7 @@ $(document).ready(function(){
     buttonCloseClick: function(uri) {
       console.log('Tryit: buttonCloselClick');
       GUI.removeSession(uri, true /*force*/);
+
     },
 
     buttonDialClick: function(target) {
