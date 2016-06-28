@@ -376,6 +376,7 @@ div.balloonInvitationTip a:hover {
 
 /****** phone-page *******/
 #phone-page {
+  position: relative;	
   padding-top: 40px;
 }
 
