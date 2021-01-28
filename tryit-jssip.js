@@ -1,7 +1,7 @@
 /*
  * tryit-jssip v1.0.3
  * New tryit-jssip application
- * Copyright: 2016-2020 Iñaki Baz Castillo <ibc@aliax.net>
+ * Copyright: 2016-2021 Iñaki Baz Castillo <ibc@aliax.net>
  * License: MIT
  */
 
